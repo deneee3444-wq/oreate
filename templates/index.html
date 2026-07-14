@@ -1,0 +1,3845 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OREATE AI STUDIO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #04060b;
+            --surface: #0a0d16;
+            --card: #0f1322;
+            --border: rgba(0, 212, 255, 0.15);
+            --border-hover: rgba(0, 212, 255, 0.4);
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.3);
+            --accent2: #a855f7;
+            --accent2-glow: rgba(168, 85, 247, 0.3);
+            --accent3: #f43f5e;
+            --gradient: linear-gradient(135deg, #00d4ff 0%, #a855f7 100%);
+            --text: #f1f5f9;
+            --muted: #64748b;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Subtle Noise Overlay & Glowing Background Orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.015'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: -20%;
+            left: 20%;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Scrollbar custom styles */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 99px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        /* Input defaults reset */
+        input, select, textarea, button {
+            background: none;
+            border: none;
+            outline: none;
+            color: inherit;
+            font-family: inherit;
+        }
+
+        .studio-icon {
+            width: 14px;
+            height: 14px;
+            display: inline-block;
+            vertical-align: middle;
+            fill: currentColor;
+            flex-shrink: 0;
+            margin-right: 4px;
+        }
+        .studio-icon-large {
+            width: 18px;
+            height: 18px;
+            margin-right: 6px;
+        }
+
+        /* ── LOGIN VIEW ── */
+        .login-wrapper {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: radial-gradient(circle at center, #0a0f1d 0%, #04060b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .login-card {
+            background: rgba(10, 13, 22, 0.7);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 3rem 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 212, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            animation: formAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes formAppear {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-box {
+            text-align: center;
+        }
+
+        .logo-title {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .logo-subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--muted);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-top: 0.4rem;
+        }
+
+        .login-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .login-field label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .login-input {
+            background: rgba(4, 6, 11, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.9rem 1.2rem;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            transition: all 0.2s ease;
+        }
+
+        .login-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.15);
+        }
+
+        .login-btn {
+            background: var(--gradient);
+            color: #000;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            letter-spacing: 0.1em;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .login-btn:hover {
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .login-error {
+            background: rgba(244, 63, 94, 0.08);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: var(--accent3);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        /* ── MAIN APP HEADER ── */
+        header {
+            height: 56px;
+            background: rgba(10, 13, 22, 0.75);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 100;
+            position: relative;
+        }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-header h1 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge-header {
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent);
+            border: 1px solid var(--border);
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.1em;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .credits-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .credits-indicator:hover {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .btn-header {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-header:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--muted);
+        }
+
+        .btn-header.danger:hover {
+            border-color: var(--accent3);
+            color: var(--accent3);
+        }
+
+        /* ── ACCOUNT DROPDOWN ── */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.8rem;
+            width: 260px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            flex-direction: column;
+            gap: 0.6rem;
+            animation: dropFade 0.2s ease forwards;
+        }
+
+        .dropdown-menu.open {
+            display: flex;
+        }
+
+        @keyframes dropFade {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dropdown-item-btn {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .dropdown-item-btn:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .drop-form-section {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 0.6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .drop-form-section h4 {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            margin-bottom: 0.2rem;
+        }
+
+        .drop-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            padding: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .drop-input:focus {
+            border-color: var(--accent);
+        }
+
+        /* ── WRAPPER GRID ── */
+        .app-wrapper {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            height: calc(100vh - 56px);
+            z-index: 10;
+            position: relative;
+        }
+
+        /* ── LEFT PANEL (CONTROLS) ── */
+        .controls-panel {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+            overflow-y: auto;
+        }
+
+        .video-fields-group, .image-fields-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+        }
+
+        /* Mode toggle slider */
+        .mode-slider-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 3px;
+            border-radius: 8px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .mode-slider-btn {
+            text-align: center;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            padding: 0.5rem 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            color: var(--muted);
+        }
+
+        .mode-slider-btn.active {
+            color: #000;
+            background: var(--gradient);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* Control field blocks */
+        .ctrl-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .ctrl-field label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .ctrl-field:not(:first-child) label {
+            margin-top: 0.2rem;
+        }
+
+        /* Dropzones */
+        .dropzone-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.4rem;
+        }
+
+        .dropzone-container.split-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .dropzone {
+            border: 1px dashed var(--border);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            height: 56px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            padding: 0.4rem 1rem;
+        }
+
+        .dropzone:hover {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.02);
+        }
+
+        .dropzone input {
+            display: none;
+        }
+
+        .dz-icon {
+            font-size: 1.1rem;
+        }
+
+        .dz-text {
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+
+        .dz-text strong {
+            color: var(--accent);
+        }
+
+        .dz-preview {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            aspect-ratio: 16 / 9;
+            z-index: 5;
+            display: none;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .dz-preview.active {
+            display: block;
+        }
+
+        .dz-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .dz-preview.active ~ .studio-icon-large,
+        .dz-preview.active ~ .dz-text {
+            display: none !important;
+        }
+
+        .dz-clear-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--border);
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            display: none; /* hidden by default */
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.2s ease;
+        }
+
+        .dz-preview.active ~ .dz-clear-btn {
+            display: flex; /* show when preview is active */
+        }
+
+        .dz-clear-btn:hover {
+            background: var(--accent3);
+            border-color: var(--accent3);
+            color: #fff;
+        }
+
+        /* Image reference multiple upload preview grid */
+        .multi-preview-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.4rem;
+        }
+
+        .multi-preview-item {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .multi-add-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            border: 1px dashed var(--border);
+            background: rgba(0, 212, 255, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--accent);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .multi-add-btn:hover {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.08);
+        }
+
+        .multi-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .multi-preview-item .remove-thumb {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            font-size: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Model selector combobox */
+        .model-select-wrap {
+            position: relative;
+        }
+
+        .model-select-btn {
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.55rem 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .model-select-btn:hover {
+            border-color: var(--border-hover);
+        }
+
+        .model-select-btn.open {
+            border-color: var(--accent);
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .model-select-btn .model-sel-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            background: #fff;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+        }
+
+        .model-select-btn .model-sel-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .model-sel-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .model-sel-name {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .model-sel-desc {
+            font-size: 0.6rem;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .model-sel-arrow {
+            font-size: 0.7rem;
+            color: var(--muted);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .model-select-btn.open .model-sel-arrow {
+            transform: rotate(180deg);
+        }
+
+        .model-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border: 1px solid var(--accent);
+            border-top: none;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            z-index: 50;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        .model-dropdown.open {
+            display: block;
+        }
+
+        .model-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 0.8rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .model-dropdown-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .model-dropdown-item:hover {
+            background: rgba(0, 212, 255, 0.06);
+        }
+
+        .model-dropdown-item.active {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .model-dropdown-item .mdi-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            background: #fff;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+        }
+
+        .model-dropdown-item .mdi-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .model-dropdown-item .mdi-name {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .model-dropdown-item .mdi-desc {
+            font-size: 0.55rem;
+            color: var(--muted);
+        }
+
+        /* Config pills styling */
+        .pills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .pill {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 0.35rem 0.6rem;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .pill img {
+            width: 12px;
+            height: 12px;
+            background: #ffffff; /* White background for dark SVG icons in pills */
+            border-radius: 2px;
+            padding: 1px;
+        }
+
+        .pill:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .pill.active {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* Toggle switches */
+        .switch-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+        }
+
+        .switch-row span {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .switch-input {
+            width: 38px;
+            height: 20px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 99px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .switch-input::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            top: 3px;
+            left: 3px;
+            background: var(--muted);
+            border-radius: 50%;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .switch-input.active {
+            background: rgba(0, 212, 255, 0.25);
+        }
+
+        .switch-input.active::before {
+            transform: translateX(18px);
+            background: var(--accent);
+        }
+
+        /* Prompt Textarea */
+        textarea.prompt-input {
+            width: 100%;
+            height: 64px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0.5rem 0.8rem;
+            font-size: 0.82rem;
+            line-height: 1.4;
+            resize: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea.prompt-input:focus {
+            border-color: var(--accent);
+        }
+
+        /* Generate Button */
+        .btn-generate {
+            width: 100%;
+            background: var(--gradient);
+            color: #000;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            padding: 0.7rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .btn-generate:hover {
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-generate:disabled {
+            background: var(--muted);
+            color: rgba(0,0,0,0.4);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ── RIGHT PANEL (VIEWS & TABS) ── */
+        .display-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Tab bar */
+        .tab-bar {
+            height: 48px;
+            background: rgba(10, 13, 22, 0.4);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            justify-content: space-between;
+        }
+
+        .tabs-list {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .tab-btn {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-count {
+            background: rgba(255, 255, 255, 0.05);
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            padding: 1px 6px;
+            border-radius: 99px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .tab-btn.active .tab-count {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent);
+            border-color: rgba(0, 212, 255, 0.2);
+        }
+
+        .tab-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Tab content space */
+        .tab-contents-wrap {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .tab-view {
+            display: none;
+            height: 100%;
+        }
+
+        .tab-view.active {
+            display: block;
+        }
+
+        /* Empty states */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60%;
+            gap: 0.8rem;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .empty-state p {
+            font-size: 0.75rem;
+            max-width: 280px;
+        }
+
+        /* Jobs Grid cards container */
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+        }
+
+        /* Card components */
+        .job-card {
+            background: rgba(16, 20, 32, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .job-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .job-thumb {
+            width: 100%;
+            aspect-ratio: 2/1;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .job-thumb img, .job-thumb video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .job-status-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            z-index: 10;
+        }
+
+        .badge-running {
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+            animation: pulse-border 1.5s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(0, 212, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0); }
+        }
+
+        .badge-done {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+        }
+
+        .badge-error {
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid var(--accent3);
+            color: var(--accent3);
+        }
+
+        .job-card-delete {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            color: var(--muted);
+            transition: all 0.2s;
+        }
+
+        .job-card-delete:hover {
+            background: var(--accent3);
+            color: #fff;
+            border-color: var(--accent3);
+        }
+
+        .job-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 10;
+        }
+
+        .job-progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            box-shadow: 0 0 8px var(--accent);
+            transition: width 0.4s ease;
+        }
+
+        .job-progress-fill.running {
+            width: 60%;
+            animation: prog-shimmer 2s infinite linear;
+        }
+
+        @keyframes prog-shimmer {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .job-card-body {
+            padding: 0.5rem 0.6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            flex: 1;
+        }
+
+        .prompt-desc-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .job-prompt-txt {
+            font-size: 0.7rem;
+            line-height: 1.3;
+            color: var(--text);
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .copy-ico-btn {
+            font-size: 0.75rem;
+            color: var(--muted);
+            cursor: pointer;
+            transition: color 0.15s;
+        }
+
+        .copy-ico-btn:hover {
+            color: var(--accent);
+        }
+
+        .copy-ico-svg {
+            width: 14px;
+            height: 14px;
+            min-width: 14px;
+            color: var(--muted);
+            cursor: pointer;
+            transition: color 0.15s;
+        }
+
+        .copy-ico-svg:hover {
+            color: var(--accent);
+        }
+
+        .job-card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .meta-badge {
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        .job-card-log {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            padding: 0.3rem 0.5rem;
+            max-height: 56px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .log-line {
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .log-line.latest {
+            color: var(--accent);
+        }
+
+        /* Action buttons below card result */
+        .job-card-actions {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 0.4rem;
+            margin-top: auto;
+            padding-top: 0.4rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .btn-card-action {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 4px;
+            padding: 0.3rem;
+            font-size: 0.6rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.2rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-card-action:hover {
+            background: rgba(0, 212, 255, 0.08);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-card-primary {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.2);
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-weight: 500;
+        }
+
+        .btn-card-primary:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        /* ── EDITOR VIEW ── */
+        .editor-container {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 1.5rem;
+            height: calc(100vh - 56px - 48px - 3rem);
+        }
+
+        .editor-sidebar {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .editor-sb-title {
+            padding: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .editor-playlist {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .playlist-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 6px;
+            padding: 0.4rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .playlist-item:hover, .playlist-item.active {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.03);
+        }
+
+        .playlist-thumb {
+            width: 48px;
+            aspect-ratio: 16/9;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #000;
+            flex-shrink: 0;
+        }
+
+        .playlist-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .playlist-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .playlist-prompt {
+            font-size: 0.7rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .playlist-meta {
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            color: var(--muted);
+            margin-top: 1px;
+        }
+
+        .playlist-remove {
+            font-size: 0.75rem;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .playlist-remove:hover {
+            color: var(--accent3);
+        }
+
+        .editor-main-player {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.2rem;
+        }
+
+        .player-viewport {
+            flex: 1;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-viewport video, .player-viewport img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .player-placeholder {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--muted);
+            opacity: 0.4;
+        }
+
+        .player-placeholder span {
+            font-size: 2.5rem;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .player-play-btn {
+            background: var(--gradient);
+            color: #000;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .player-timeline-bg {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 99px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .player-timeline-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .player-counter {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+
+        /* ── PROMPTS VIEW ── */
+        .prompt-lib-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            height: calc(100vh - 56px - 48px - 3rem);
+        }
+
+        .prompt-lib-adder {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .prompt-lib-input-field {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            font-size: 0.85rem;
+            transition: border-color 0.2s;
+        }
+
+        .prompt-lib-input-field:focus {
+            border-color: var(--accent);
+        }
+
+        .prompt-lib-add-btn {
+            background: var(--gradient);
+            color: #000;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 0.8rem;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .prompts-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            padding-right: 0.5rem;
+        }
+
+        .prompt-lib-card {
+            background: rgba(16, 20, 32, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            transition: all 0.2s;
+        }
+
+        .prompt-lib-card:hover {
+            border-color: var(--border-hover);
+            background: rgba(16, 20, 32, 0.5);
+        }
+
+        .prompt-lib-txt {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .prompt-lib-actions {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .prompt-lib-action-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 0.35rem 0.7rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .prompt-lib-action-btn.use-btn {
+            color: var(--accent);
+            border-color: rgba(0, 212, 255, 0.2);
+        }
+
+        .prompt-lib-action-btn.use-btn:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .prompt-lib-action-btn.del-btn:hover {
+            background: var(--accent3);
+            color: #fff;
+            border-color: var(--accent3);
+        }
+
+        /* ── MODAL LIGHTBOX ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 6, 11, 0.95);
+            backdrop-filter: blur(12px);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            background: var(--accent3);
+            border-color: var(--accent3);
+        }
+
+        .modal-content-area {
+            width: 90vw;
+            max-width: 1080px;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 100px rgba(0, 0, 0, 0.9);
+            animation: zoomIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-content-area img, .modal-content-area video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .modal-frame-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            width: 90vw;
+            max-width: 1080px;
+            background: rgba(16, 20, 32, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+        }
+
+        .modal-time-lbl {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--muted);
+            min-width: 80px;
+        }
+
+        .modal-action-btn {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-action-btn:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        /* ── SEND TO PORTAL FLOATING MENU ── */
+        .portal-menu {
+            display: none;
+            position: fixed;
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0.4rem;
+            width: 190px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            z-index: 999999;
+            flex-direction: column;
+            gap: 0.3rem;
+            animation: dropFade 0.15s ease forwards;
+        }
+
+        .portal-menu.active {
+            display: flex;
+        }
+
+        .portal-menu-item {
+            width: 100%;
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 0.5rem 0.8rem;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--muted);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.12s;
+        }
+
+        .portal-menu-item:hover {
+            color: var(--accent);
+            background: rgba(0, 212, 255, 0.06);
+        }
+
+        /* ── TOAST MESSAGES ── */
+        .toast-box {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(10, 13, 22, 0.9);
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 25px rgba(0, 212, 255, 0.2);
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.6rem 1.4rem;
+            border-radius: 6px;
+            z-index: 9999999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toast-box.active {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ── CANVAS FOR FRAME EXTRAC ── */
+        #frame-canvas {
+            display: none;
+        }
+
+        /* ── RESPONSIVE DESIGN BREAKPOINTS ── */
+        @media (max-width: 900px) {
+            body {
+                height: auto;
+                overflow-y: auto;
+            }
+
+            .app-wrapper {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .controls-panel {
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .tab-contents-wrap {
+                min-height: 400px;
+                height: auto;
+            }
+
+            .editor-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .editor-sidebar {
+                max-height: 250px;
+            }
+
+            .player-viewport {
+                aspect-ratio: 16/9;
+                flex: none;
+            }
+        }
+
+        @media (max-width: 540px) {
+            header {
+                padding: 0 0.8rem;
+            }
+
+            .badge-header {
+                display: none;
+            }
+
+            .logo-header h1 {
+                font-size: 1.1rem;
+            }
+
+            .credits-indicator {
+                font-size: 0.65rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .tab-bar {
+                padding: 0 0.6rem;
+            }
+
+            .tabs-list {
+                gap: 0.8rem;
+            }
+
+            .tab-btn {
+                font-size: 0.7rem;
+            }
+
+            .tab-count {
+                display: none;
+            }
+
+            .jobs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content-area {
+                width: 96vw;
+                border-radius: 4px;
+            }
+
+            .modal-frame-bar {
+                width: 96vw;
+                flex-wrap: wrap;
+                gap: 0.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="frame-canvas"></canvas>
+
+    {% if show_login %}
+    <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="logo-box">
+                <div class="logo-title">OREATE AI</div>
+                <div class="logo-subtitle">AI Generator Studio</div>
+            </div>
+            
+            {% if error %}
+            <div class="login-error">
+                ⚠️ Geçersiz şifre girdiniz. Lütfen tekrar deneyin.
+            </div>
+            {% endif %}
+
+            <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div class="login-field">
+                    <label for="password">Panel Giriş Şifresi</label>
+                    <input class="login-input" type="password" id="password" name="password" placeholder="••••••••" required autofocus autocomplete="current-password">
+                </div>
+                <button type="submit" class="login-btn">GİRİŞ YAP</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <!-- ═══════════════ MAIN APPLICATION ═══════════════ -->
+
+    <header>
+        <div class="logo-header">
+            <h1>OREATE AI</h1>
+            <div class="badge-header">AI STUDIO</div>
+        </div>
+        <div class="header-actions">
+            <div class="credits-indicator" id="header-credits" title="Kredileri Sorgula">
+                <svg class="studio-icon" viewBox="0 0 24 24" style="color:var(--accent); width:14px; height:14px; margin-right:4px;"><path fill="currentColor" d="M11.5 2L2 13h9v9l9.5-11h-9V2z" /></svg>
+                <span id="credits-val">Yükleniyor...</span>
+            </div>
+            <div class="dropdown">
+                <button class="btn-header" id="dropdown-toggle">Yönetim ▾</button>
+                <div class="dropdown-menu" id="dropdown-menu">
+                    <button class="dropdown-item-btn" id="btn-action-signup">
+                        <svg class="studio-icon" viewBox="0 0 24 24" style="width:14px; height:14px; margin-right:4px;"><path fill="currentColor" d="M19 15c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2V9c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v6zM9 13.5c0-.8-.7-1.5-1.5-1.5S6 12.7 6 13.5s.7 1.5 1.5 1.5S9 14.3 9 13.5zm9 0c0-.8-.7-1.5-1.5-1.5S15 12.7 15 13.5s.7 1.5 1.5 1.5 1.5-.7 1.5-1.5zM12 2v3M9.5 3h5"/></svg>
+                        Otomatik Yeni Hesap Aç
+                    </button>
+                    <button class="dropdown-item-btn" id="btn-action-daily">
+                        <svg class="studio-icon" viewBox="0 0 24 24" style="width:14px; height:14px; margin-right:4px;"><path fill="currentColor" d="M20 6h-2.18c.11-.31.18-.65.18-1a2.5 2.5 0 0 0-5-0.5c0 .17.02.35.06.5H12c.04-.15.06-.33.06-0.5a2.5 2.5 0 0 0-5 .5c0 .35.07.69.18 1H5a2 2 0 0 0-2 2v3a1 1 0 0 0 1 1h1v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8h1a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2zM9.5 4.5c0-.28.22-.5.5-.5s.5.22.5.5v1.5H9.5V4.5zm5 0c0-.28.22-.5.5-.5s.5.22.5.5v1.5h-1V4.5zM5 8h6v2H5V8zm12 12H7v-8h10v8zm2-10h-6V8h6v2z"/></svg>
+                        Günlük Bonus Al
+                    </button>
+                    
+                    <div class="drop-form-section">
+                        <h4>Cookie ile Giriş Yap</h4>
+                        <input class="drop-input" type="text" id="cookie-ouss" placeholder="ouss cookie değeri">
+                        <input class="drop-input" type="text" id="cookie-ouid" placeholder="OUID cookie değeri (opsiyonel)">
+                        <input class="drop-input" type="text" id="cookie-email" placeholder="E-posta (opsiyonel)">
+                        <button class="dropdown-item-btn" id="btn-action-cookie-login" style="margin-top: 0.2rem;">Çerez Uygula</button>
+                    </div>
+
+                    <div class="drop-form-section">
+                        <h4>E-Posta / Şifre Girişi</h4>
+                        <input class="drop-input" type="text" id="oreate-email" placeholder="E-posta adresi">
+                        <input class="drop-input" type="password" id="oreate-pass" placeholder="Şifre">
+                        <button class="dropdown-item-btn" id="btn-action-oreate-login" style="margin-top: 0.2rem;">Oreate Giriş Yap</button>
+                    </div>
+                </div>
+            </div>
+            <a href="/logout" class="btn-header danger">ÇIKIŞ</a>
+        </div>
+    </header>
+
+    <div class="app-wrapper">
+
+        <!-- ── LEFT CONTROL PANEL ── -->
+        <aside class="controls-panel">
+            <div class="mode-slider-wrap">
+                <div class="mode-slider-btn active" id="btn-mode-video" data-mode="video">
+                    <svg class="studio-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; margin-right: 4px;"><path fill="currentColor" d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z" /></svg>
+                    VİDEO
+                </div>
+                <div class="mode-slider-btn" id="btn-mode-image" data-mode="image">
+                    <svg class="studio-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; margin-right: 4px;"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A2,2 0 0,0 14,20A2,2 0 0,0 13.5,18.5C13.5,18 14,17.5 14.5,17.5H16A6,6 0 0,0 22,11.5C22,6.25 17.5,2 12,2M5,12A1,1 0 1,1 6,11A1,1 0 0,1 5,12M8,8A1,1 0 1,1 9,7A1,1 0 0,1 8,8M12,6A1,1 0 1,1 13,5A1,1 0 0,1 12,6M16,8A1,1 0 1,1 17,7A1,1 0 0,1 16,8Z" /></svg>
+                    RESİM
+                </div>
+            </div>
+
+            <!-- Video Inputs -->
+            <div class="video-fields-group" id="video-fields">
+                <div class="ctrl-field">
+                    <label>Başlangıç Karesi (Start Frame)</label>
+                    <div class="dropzone" id="dz-start-frame">
+                        <input type="file" accept="image/png, image/jpeg, image/webp" id="file-start-frame">
+                        <div class="dz-preview"><img src="" alt="Start Frame Preview"></div>
+                        <button class="dz-clear-btn">✕</button>
+                        <svg class="studio-icon-large" viewBox="0 0 24 24" style="color: var(--accent);"><path fill="currentColor" d="M18 4v1h-2V4h-8v1H6V4H5v16h1v-1h2v1h8v-1h2v1h1V4h-1zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm8 8h-6v-2h6v2zm0-4h-6v-2h6v2zm0-4h-6V7h6v2zm2 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z" /></svg>
+                        <div class="dz-text"><strong>Görsel sürükle</strong> veya tıkla</div>
+                    </div>
+                </div>
+
+                <div class="ctrl-field">
+                    <label>Bitiş Karesi (End Frame - Opsiyonel)</label>
+                    <div class="dropzone" id="dz-end-frame">
+                        <input type="file" accept="image/png, image/jpeg, image/webp" id="file-end-frame">
+                        <div class="dz-preview"><img src="" alt="End Frame Preview"></div>
+                        <button class="dz-clear-btn">✕</button>
+                        <svg class="studio-icon-large" viewBox="0 0 24 24" style="color: var(--accent);"><path fill="currentColor" d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6h-5.6z" /></svg>
+                        <div class="dz-text"><strong>Görsel sürükle</strong> veya tıkla</div>
+                    </div>
+                </div>
+
+                <!-- Video reference multi-image zone (hidden by default) -->
+                <div class="ctrl-field" id="ctrl-video-multi-img" style="display: none;">
+                    <label>Çoklu Referans Resimleri (Model İçin)</label>
+                    <div class="dropzone" id="dz-video-multi">
+                        <input type="file" accept="image/png, image/jpeg, image/webp" id="file-video-multi" multiple>
+                        <svg class="studio-icon-large" viewBox="0 0 24 24" style="color: var(--accent);"><path fill="currentColor" d="M4 4h3l2-2h6l2 2h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6z" /></svg>
+                        <div class="dz-text"><strong>Referans görselleri</strong> seç veya sürükle</div>
+                    </div>
+                    <div class="multi-preview-grid" id="preview-grid-video-multi"></div>
+                </div>
+            </div>
+
+            <!-- Image Inputs -->
+            <div class="image-fields-group" id="image-fields" style="display: none;">
+                <div class="ctrl-field">
+                    <label>Referans Görsel (Maks 10)</label>
+                    <div class="dropzone" id="dz-image-refs">
+                        <input type="file" accept="image/png, image/jpeg, image/webp" id="file-image-refs" multiple>
+                        <svg class="studio-icon-large" viewBox="0 0 24 24" style="color: var(--accent);"><path fill="currentColor" d="M8.5 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm13.5 11.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2zM4 6h16v8.4l-3.2-3.2a1 1 0 0 0-1.4 0L6.7 19.9H4V6z" /></svg>
+                        <div class="dz-text"><strong>Görsel sürükle</strong> veya tıklayarak seç</div>
+                    </div>
+                    <div class="multi-preview-grid" id="preview-grid-image-refs"></div>
+                </div>
+            </div>
+
+            <!-- Model Selector (Combobox) -->
+            <div class="ctrl-field">
+                <label id="model-list-label">Model Seçimi</label>
+                <div class="model-select-wrap" id="model-select-wrap">
+                    <div class="model-select-btn" id="model-select-btn">
+                        <div class="model-sel-icon"><img src="https://cdn.oreateai.com/static/v1/img/defaultavatar.png" id="model-sel-icon-img"></div>
+                        <div class="model-sel-info">
+                            <div class="model-sel-name" id="model-sel-name">Model seçin...</div>
+                            <div class="model-sel-desc" id="model-sel-desc">Yükleniyor</div>
+                        </div>
+                        <span class="model-sel-arrow">▼</span>
+                    </div>
+                    <div class="model-dropdown" id="model-dropdown">
+                        <!-- Dynamic items -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Config Pill Options -->
+            <div class="ctrl-field" id="field-resolutions">
+                <label>Çözünürlük</label>
+                <div class="pills-container" id="pills-resolutions"></div>
+            </div>
+
+            <div class="ctrl-field" id="field-ratios">
+                <label>Aspect Ratio (Boyut)</label>
+                <div class="pills-container" id="pills-ratios"></div>
+            </div>
+
+            <div class="ctrl-field" id="field-durations">
+                <label>Süre (Duration)</label>
+                <div class="pills-container" id="pills-durations"></div>
+            </div>
+
+            <div class="switch-row" id="field-audio">
+                <span>
+                    <svg class="studio-icon" viewBox="0 0 24 24" style="margin-right:4px;"><path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18.07,19.86 21,16.28 21,12C21,7.72 18.07,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.77 16.5,12M3,9V15H7L12,20V4L7,9H3Z" /></svg>
+                    Ses Eklensin mi?
+                </span>
+                <div class="switch-input active" id="audio-toggle-switch"></div>
+            </div>
+
+            <!-- Prompt Textarea -->
+            <div class="ctrl-field">
+                <label for="prompt-input">Yapay Zeka Komutu (Prompt)</label>
+                <textarea class="prompt-input" id="prompt-input" placeholder="Sahneyi, hareketleri ve görsel stili buraya yazın... Örn: Slow cinematic panning, dramatic lighting, cyberpunk street..."></textarea>
+            </div>
+
+            <!-- Generate CTA -->
+            <button class="btn-generate" id="btn-generate">
+                <svg class="studio-icon" viewBox="0 0 24 24" style="margin-right: 6px;"><path fill="currentColor" d="M8,5.14V19.14L19,12.14L8,5.14Z" /></svg>
+                GENERATE VIDEO (0 Kredi)
+            </button>
+        </aside>
+
+        <!-- ── RIGHT CONTENT DISPLAY PANEL ── -->
+        <main class="display-panel">
+            <div class="tab-bar">
+                <div class="tabs-list">
+                    <button class="tab-btn active" data-tab="generations">
+                        ÜRETİMLER <span class="tab-count" id="count-generations">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="gallery">
+                        GALERİ <span class="tab-count" id="count-gallery">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="editor">
+                        EDİTÖR <span class="tab-count" id="count-editor">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="prompts">
+                        PROMPTLAR <span class="tab-count" id="count-prompts">0</span>
+                    </button>
+                </div>
+                <div class="tab-actions">
+                    <button class="btn-header danger" id="btn-clear-tab" style="font-size: 0.65rem; padding: 0.3rem 0.6rem; display: none;">✕ Temizle</button>
+                </div>
+            </div>
+
+            <div class="tab-contents-wrap">
+
+                <!-- 🚀 Generations View -->
+                <div class="tab-view active" id="tab-view-generations">
+                    <div class="empty-state" id="empty-generations">
+                        <span class="empty-icon">🎬</span>
+                        <h3>Henüz Bir Üretim Bulunmuyor</h3>
+                        <p>Sol paneldeki parametreleri doldurun ve Generate butonuna tıklayarak ilk üretiminizi başlatın.</p>
+                    </div>
+                    <div class="jobs-grid" id="grid-generations"></div>
+                </div>
+
+                <!-- 🖼️ Gallery View -->
+                <div class="tab-view" id="tab-view-gallery">
+                    <div class="empty-state" id="empty-gallery">
+                        <span class="empty-icon">🗂️</span>
+                        <h3>Galeri Klasörü Boş</h3>
+                        <p>Başarıyla tamamlanan üretimleriniz buraya otomatik olarak eklenir.</p>
+                    </div>
+                    <div class="jobs-grid" id="grid-gallery"></div>
+                </div>
+
+                <!-- 🎬 Editor View -->
+                <div class="tab-view" id="tab-view-editor">
+                    <div class="editor-container">
+                        <div class="editor-sidebar">
+                            <div class="editor-sb-title">Film Şeridi (Playlist)</div>
+                            <div class="editor-playlist" id="editor-playlist">
+                                <div class="empty-state" id="empty-playlist" style="height: auto; padding: 2rem 0;">
+                                    <span class="empty-icon" style="font-size: 1.5rem;">📋</span>
+                                    <p style="font-size: 0.65rem;">Galeriden veya üretimlerden görsellere tıklayıp "Editöre Gönder" seçeneğini kullanın.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="editor-main-player">
+                            <div class="player-viewport" id="player-viewport">
+                                <div class="player-placeholder" id="player-placeholder">
+                                    <span>📺</span>
+                                    <p>Oynatılacak Klip Yok</p>
+                                </div>
+                            </div>
+                            <div class="player-controls">
+                                <button class="player-play-btn" id="player-play-btn" disabled>OYNAT</button>
+                                <div class="player-timeline-bg" id="player-timeline">
+                                    <div class="player-timeline-fill" id="player-timeline-fill"></div>
+                                </div>
+                                <div class="player-counter" id="player-counter">0 / 0</div>
+                                <button class="btn-header danger" id="player-clear-btn" style="font-size: 0.7rem;">Temizle</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📝 Prompts View -->
+                <div class="tab-view" id="tab-view-prompts">
+                    <div class="prompt-lib-wrapper">
+                        <div class="prompt-lib-adder">
+                            <input type="text" class="prompt-lib-input-field" id="prompt-lib-input" placeholder="Kütüphaneye kaydetmek istediğiniz komut metnini yazın...">
+                            <button class="prompt-lib-add-btn" id="prompt-lib-add-btn">KAYDET</button>
+                        </div>
+                        <div class="prompts-list" id="prompts-list">
+                            <div class="empty-state" id="empty-prompts" style="height: auto; padding: 3rem 0;">
+                                <svg class="studio-icon-large" style="opacity: 0.3; margin-bottom: 0.5rem;" viewBox="0 0 24 24"><path fill="currentColor" d="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M17,17H7V15H17V17M17,13H7V11H17V13M14,9H7V7H14V9Z" /></svg>
+                                <h3>Kayıtlı Prompt Yok</h3>
+                                <p>Sık kullandığınız komut metinlerini buraya ekleyerek hızlıca kullanabilirsiniz.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ── MODAL VIEWER LIGHTBOX ── -->
+    <div class="modal-overlay" id="modal-lightbox">
+        <button class="modal-close-btn" id="modal-close"><svg class="studio-icon" viewBox="0 0 24 24" style="margin: 0; width: 14px; height: 14px;"><path fill="none" stroke="currentColor" stroke-width="2" d="M18 6L6 18M6 6l12 12" /></svg></button>
+        <div class="modal-content-area" id="modal-media-wrap"></div>
+        <div class="modal-frame-bar" id="modal-controls-bar" style="display: none;">
+            <div class="modal-time-lbl" id="modal-video-time" style="display: none;">0:00</div>
+            <button class="modal-action-btn" id="modal-btn-start">
+                <svg class="studio-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M18 4v1h-2V4h-8v1H6V4H5v16h1v-1h2v1h8v-1h2v1h1V4h-1zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm8 8h-6v-2h6v2zm0-4h-6v-2h6v2zm0-4h-6V7h6v2zm2 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z" /></svg>
+                BAŞLANGIÇ KARESI YAP
+            </button>
+            <button class="modal-action-btn" id="modal-btn-end">
+                <svg class="studio-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6h-5.6z" /></svg>
+                BİTİŞ KARESI YAP
+            </button>
+            <button class="modal-action-btn" id="modal-btn-ref" style="display: none;">
+                <svg class="studio-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A2,2 0 0,0 14,20A2,2 0 0,0 13.5,18.5C13.5,18 14,17.5 14.5,17.5H16A6,6 0 0,0 22,11.5C22,6.25 17.5,2 12,2M5,12A1,1 0 1,1 6,11A1,1 0 0,1 5,12M8,8A1,1 0 1,1 9,7A1,1 0 0,1 8,8M12,6A1,1 0 1,1 13,5A1,1 0 0,1 12,6M16,8A1,1 0 1,1 17,7A1,1 0 0,1 16,8Z" /></svg>
+                RESİM REFERANSI YAP
+            </button>
+        </div>
+    </div>
+
+    <!-- ── PORTAL FLOATING MENU ── -->
+    <div class="portal-menu" id="portal-context-menu">
+        <button class="portal-menu-item" id="portal-action-editor">
+            <svg class="studio-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z" /></svg>
+            Editör Playlistine Ekle
+        </button>
+        <button class="portal-menu-item" id="portal-action-start">
+            <svg class="studio-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M18 4v1h-2V4h-8v1H6V4H5v16h1v-1h2v1h8v-1h2v1h1V4h-1zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm8 8h-6v-2h6v2zm0-4h-6v-2h6v2zm0-4h-6V7h6v2zm2 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z" /></svg>
+            Video Start Frame Yap
+        </button>
+        <button class="portal-menu-item" id="portal-action-end">
+            <svg class="studio-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6h-5.6z" /></svg>
+            Video End Frame Yap
+        </button>
+        <button class="portal-menu-item" id="portal-action-img-ref">
+            <svg class="studio-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M8.5 8.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm13.5 11.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2zM4 6h16v8.4l-3.2-3.2a1 1 0 0 0-1.4 0L6.7 19.9H4V6z" /></svg>
+            Resim Referans Görseli Yap
+        </button>
+    </div>
+
+    <!-- ── TOAST NOTIFICATION BOX ── -->
+    <div class="toast-box" id="toast-box">Mesaj</div>
+
+    <!-- ═══════════════ JS FUNCTIONALITY ═══════════════ -->
+    <script>
+        // ------------------ GLOBAL APP STATES ------------------
+        let activeMode = 'video';
+        let startFile = null;
+        let endFile = null;
+        let imgFiles = [];
+        let vidImgFiles = [];
+        
+        let _imageModels = [];
+        let _videoModels = [];
+        let selectedImageModel = null;
+        let selectedVideoModel = null;
+        
+        let selectedDuration = null;
+        let selectedResolution = null;
+        let selectedRatio = null;
+        let audioEnabled = true;
+
+        let activeTasks = {};
+        let editorPlaylist = [];
+        let editorIndex = 0;
+        let editorPlaying = false;
+        let editorTimer = null;
+        let _savedPrompts = [];
+
+        // ------------------ UTILS ------------------
+        function showToast(msg) {
+            const toast = document.getElementById('toast-box');
+            toast.textContent = msg;
+            toast.classList.add('active');
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 2500);
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Komut panoya kopyalandı!");
+            }).catch(() => {
+                showToast("Panoya kopyalama başarısız oldu.");
+            });
+        }
+
+        function formatTime(s) {
+            if (isNaN(s)) return "0:00";
+            const min = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        function formatDate(ts) {
+            const date = new Date(ts * 1000);
+            return date.toLocaleDateString('tr-TR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // ------------------ ACCOUNT MANAGEMENT ------------------
+        const dropdownToggle = document.getElementById('dropdown-toggle');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        
+        dropdownToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('open');
+        });
+
+        document.addEventListener('click', () => {
+            dropdownMenu.classList.remove('open');
+        });
+
+        dropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation(); // prevent closure
+        });
+
+        function refreshCredits() {
+            fetch('/api/credits')
+                .then(r => r.json())
+                .then(d => {
+                    const c = document.getElementById('credits-val');
+                    if (c) {
+                        if (d.credits !== undefined && d.credits >= 0) {
+                            c.textContent = `${d.credits} Kredi`;
+                        } else {
+                            c.textContent = `Giriş Gerekli`;
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error("Kredi getirme hatası:", err);
+                    const c = document.getElementById('credits-val');
+                    if (c) c.textContent = `Giriş Gerekli`;
+                });
+        }
+
+        document.getElementById('header-credits').addEventListener('click', () => {
+            fetch('/api/credits')
+                .then(r => r.json())
+                .then(d => {
+                    const c = document.getElementById('credits-val');
+                    if (c) {
+                        if (d.credits !== undefined && d.credits >= 0) {
+                            c.textContent = `${d.credits} Kredi`;
+                            showToast(`Krediler güncellendi: ${d.credits} Kredi`);
+                        } else {
+                            c.textContent = `Giriş Gerekli`;
+                            showToast("Krediler güncellendi: Giriş Gerekli");
+                        }
+                    }
+                })
+                .catch(err => {
+                    const c = document.getElementById('credits-val');
+                    if (c) c.textContent = `Giriş Gerekli`;
+                    showToast("Krediler güncellenemedi.");
+                });
+        });
+
+        document.getElementById('btn-action-signup').addEventListener('click', () => {
+            showToast("Yeni hesap açma işlemi başlatıldı. Mail inbox taranıyor...");
+            fetch('/api/signup', { method: 'POST' })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.error) {
+                        showToast(`Hata: ${d.error}`);
+                    } else {
+                        alert(`Yeni hesap oluşturuldu!\nE-Posta: ${d.email}\nŞifre: ${d.password}\nKredi: ${d.credits}`);
+                        refreshCredits();
+                    }
+                });
+        });
+
+        document.getElementById('btn-action-daily').addEventListener('click', () => {
+            fetch('/api/daily-bonus', { method: 'POST' })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.error) {
+                        showToast(`Hata: ${d.error}`);
+                    } else {
+                        showToast(d.message);
+                        refreshCredits();
+                    }
+                });
+        });
+
+        document.getElementById('btn-action-cookie-login').addEventListener('click', () => {
+            const ouss = document.getElementById('cookie-ouss').value.trim();
+            const ouid = document.getElementById('cookie-ouid').value.trim();
+            const email = document.getElementById('cookie-email').value.trim();
+            if (!ouss) {
+                showToast("Ouss değeri boş olamaz");
+                return;
+            }
+            fetch('/api/cookie-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ouss, ouid, email })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.error) {
+                    showToast(`Hata: ${d.error}`);
+                } else {
+                    showToast("Çerezler başarıyla uygulandı.");
+                    refreshCredits();
+                    dropdownMenu.classList.remove('open');
+                }
+            });
+        });
+
+        document.getElementById('btn-action-oreate-login').addEventListener('click', () => {
+            const email = document.getElementById('oreate-email').value.trim();
+            const password = document.getElementById('oreate-pass').value.trim();
+            if (!email || !password) {
+                showToast("E-posta ve şifre gereklidir");
+                return;
+            }
+            fetch('/api/login-oreate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.error) {
+                    showToast(`Hata: ${d.error}`);
+                } else {
+                    showToast("Oreate girişi başarılı.");
+                    refreshCredits();
+                    dropdownMenu.classList.remove('open');
+                }
+            });
+        });
+
+        // ------------------ MODE SWITCHING ------------------
+        const modeVideo = document.getElementById('btn-mode-video');
+        const modeImage = document.getElementById('btn-mode-image');
+        const videoFields = document.getElementById('video-fields');
+        const imageFields = document.getElementById('image-fields');
+        const generateBtn = document.getElementById('btn-generate');
+
+        modeVideo.addEventListener('click', () => switchMode('video'));
+        modeImage.addEventListener('click', () => switchMode('image'));
+
+        function switchMode(mode) {
+            activeMode = mode;
+            if (mode === 'video') {
+                modeVideo.classList.add('active');
+                modeImage.classList.remove('active');
+                videoFields.style.display = 'block';
+                imageFields.style.display = 'none';
+                generateBtn.textContent = '▶ GENERATE VIDEO (0 Kredi)';
+                renderVideoModels();
+            } else {
+                modeVideo.classList.remove('active');
+                modeImage.classList.add('active');
+                videoFields.style.display = 'none';
+                imageFields.style.display = 'block';
+                generateBtn.textContent = '▶ GENERATE IMAGE (0 Kredi)';
+                renderImageModels();
+            }
+        }
+
+        // ------------------ DROPZONE AND FILE PREVIEWS ------------------
+        function makeDropzone(dzElementId, inputElementId, onFileSelected, multiple = false) {
+            const dz = document.getElementById(dzElementId);
+            const input = document.getElementById(inputElementId);
+            const preview = dz.querySelector('.dz-preview');
+            const clearBtn = dz.querySelector('.dz-clear-btn');
+
+            dz.addEventListener('click', (e) => {
+                if (clearBtn && (e.target === clearBtn || clearBtn.contains(e.target))) {
+                    return;
+                }
+                input.click();
+            });
+
+            input.addEventListener('change', () => {
+                if (multiple) {
+                    onFileSelected(input.files);
+                } else if (input.files[0]) {
+                    onFileSelected(input.files[0]);
+                }
+            });
+
+            dz.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dz.style.borderColor = 'var(--accent)';
+            });
+
+            dz.addEventListener('dragleave', () => {
+                dz.style.borderColor = 'var(--border)';
+            });
+
+            dz.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dz.style.borderColor = 'var(--border)';
+                const files = e.dataTransfer.files;
+                if (multiple) {
+                    onFileSelected(files);
+                } else if (files[0]) {
+                    onFileSelected(files[0]);
+                }
+            });
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    input.value = '';
+                    if (preview) {
+                        preview.classList.remove('active');
+                        preview.querySelector('img').src = '';
+                    }
+                    onFileSelected(null);
+                });
+            }
+        }
+
+        // Setup dropzones
+        makeDropzone('dz-start-frame', 'file-start-frame', (file) => {
+            const dz = document.getElementById('dz-start-frame');
+            const preview = dz.querySelector('.dz-preview');
+            startFile = file;
+            if (file) {
+                const url = URL.createObjectURL(file);
+                preview.querySelector('img').src = url;
+                preview.classList.add('active');
+            } else {
+                dz.querySelector('.dz-clear-btn').style.display = 'none';
+            }
+            calculateCost();
+        });
+
+        makeDropzone('dz-end-frame', 'file-end-frame', (file) => {
+            const dz = document.getElementById('dz-end-frame');
+            const preview = dz.querySelector('.dz-preview');
+            endFile = file;
+            if (file) {
+                const url = URL.createObjectURL(file);
+                preview.querySelector('img').src = url;
+                preview.classList.add('active');
+            }
+            calculateCost();
+        });
+
+        function updateVideoMulti(files) {
+            if (files === null) {
+                vidImgFiles = [];
+            } else {
+                for (let f of files) {
+                    if (vidImgFiles.length < 5) {
+                        vidImgFiles.push(f);
+                    }
+                }
+            }
+            renderVideoMultiList();
+            calculateCost();
+        }
+
+        function renderVideoMultiList() {
+            renderMultiGrid('preview-grid-video-multi', vidImgFiles, (idx) => {
+                vidImgFiles.splice(idx, 1);
+                renderVideoMultiList();
+                calculateCost();
+            }, 'file-video-multi', 'dz-video-multi');
+        }
+
+        makeDropzone('dz-video-multi', 'file-video-multi', updateVideoMulti, true);
+
+        function updateImageRefs(files) {
+            if (files === null) {
+                imgFiles = [];
+            } else {
+                for (let f of files) {
+                    if (imgFiles.length < 10) {
+                        imgFiles.push(f);
+                    }
+                }
+            }
+            renderImageRefsList();
+            calculateCost();
+        }
+
+        function renderImageRefsList() {
+            renderMultiGrid('preview-grid-image-refs', imgFiles, (idx) => {
+                imgFiles.splice(idx, 1);
+                renderImageRefsList();
+                calculateCost();
+            }, 'file-image-refs', 'dz-image-refs');
+        }
+
+        makeDropzone('dz-image-refs', 'file-image-refs', updateImageRefs, true);
+
+        function renderMultiGrid(containerId, fileArray, onRemove, inputId, dzId) {
+            const grid = document.getElementById(containerId);
+            const dz = document.getElementById(dzId);
+            const input = document.getElementById(inputId);
+            grid.innerHTML = '';
+
+            if (fileArray.length > 0) {
+                dz.style.display = 'none'; // Hide the big dropzone container
+                
+                // Render previews
+                fileArray.forEach((file, idx) => {
+                    const url = URL.createObjectURL(file);
+                    const div = document.createElement('div');
+                    div.className = 'multi-preview-item';
+                    div.innerHTML = `
+                        <img src="${url}">
+                        <span class="remove-thumb">✕</span>
+                    `;
+                    div.querySelector('.remove-thumb').addEventListener('click', () => {
+                        onRemove(idx);
+                    });
+                    grid.appendChild(div);
+                });
+
+                // Render "+" button to add more images
+                const maxCount = containerId.includes('image-refs') ? 10 : 5;
+                if (fileArray.length < maxCount) {
+                    const addBtn = document.createElement('div');
+                    addBtn.className = 'multi-add-btn';
+                    addBtn.textContent = '+';
+                    addBtn.title = "Görsel Ekle";
+                    addBtn.addEventListener('click', () => {
+                        input.click();
+                    });
+                    grid.appendChild(addBtn);
+                }
+            } else {
+                dz.style.display = 'flex'; // Restore the big dropzone container
+            }
+        }
+
+        // ------------------ MODELS RENDERING & LOGIC ------------------
+
+        function loadModels() {
+            fetch('/api/models')
+                .then(r => r.json())
+                .then(d => {
+                    if (d.error) {
+                        showToast(`Modeller yüklenemedi: ${d.error}`);
+                    } else {
+                        _imageModels = d.image_models || [];
+                        _videoModels = d.video_models || [];
+                        if (activeMode === 'video') renderVideoModels();
+                        else renderImageModels();
+                    }
+                });
+        }
+
+        function renderImageModels() {
+            const dropdown = document.getElementById('model-dropdown');
+            dropdown.innerHTML = '';
+            _imageModels.forEach(m => {
+                const activeCls = (selectedImageModel && selectedImageModel.modelName === m.modelName) ? 'active' : '';
+                const item = document.createElement('div');
+                item.className = `model-dropdown-item ${activeCls}`;
+                item.innerHTML = `
+                    <div class="mdi-icon">
+                        <img src="${m.modelIcon || 'https://cdn.oreateai.com/static/v1/img/defaultavatar.png'}" onerror="this.src='https://cdn.oreateai.com/static/v1/img/defaultavatar.png'">
+                    </div>
+                    <div class="model-dropdown-info">
+                        <div class="mdi-name">${m.modelName}</div>
+                        <div class="mdi-desc">${m.modelDesc || ''}</div>
+                    </div>
+                `;
+                item.addEventListener('click', () => {
+                    selectImageModel(m);
+                    closeModelDropdown();
+                });
+                dropdown.appendChild(item);
+            });
+            if (_imageModels.length > 0 && !selectedImageModel) {
+                selectImageModel(_imageModels[0]);
+            } else if (selectedImageModel) {
+                updateModelSelectBtn(selectedImageModel);
+            }
+        }
+
+        function renderVideoModels() {
+            const dropdown = document.getElementById('model-dropdown');
+            dropdown.innerHTML = '';
+            _videoModels.forEach(m => {
+                const activeCls = (selectedVideoModel && selectedVideoModel.modelName === m.modelName) ? 'active' : '';
+                const desc = m.description ? (m.description.tr || m.description.en || '') : '';
+                const item = document.createElement('div');
+                item.className = `model-dropdown-item ${activeCls}`;
+                item.innerHTML = `
+                    <div class="mdi-icon">
+                        <img src="${m.modelIcon || 'https://cdn.oreateai.com/static/v1/img/defaultavatar.png'}" onerror="this.src='https://cdn.oreateai.com/static/v1/img/defaultavatar.png'">
+                    </div>
+                    <div class="model-dropdown-info">
+                        <div class="mdi-name">${m.modelName}</div>
+                        <div class="mdi-desc">${desc}</div>
+                    </div>
+                `;
+                item.addEventListener('click', () => {
+                    selectVideoModel(m);
+                    closeModelDropdown();
+                });
+                dropdown.appendChild(item);
+            });
+            if (_videoModels.length > 0 && !selectedVideoModel) {
+                selectVideoModel(_videoModels[0]);
+            } else if (selectedVideoModel) {
+                updateModelSelectBtn(selectedVideoModel);
+            }
+        }
+
+        function updateModelSelectBtn(model) {
+            const icon = model.modelIcon || 'https://cdn.oreateai.com/static/v1/img/defaultavatar.png';
+            document.getElementById('model-sel-icon-img').src = icon;
+            document.getElementById('model-sel-name').textContent = model.modelName;
+            const desc = model.modelDesc || (model.description ? (model.description.tr || model.description.en || '') : '');
+            document.getElementById('model-sel-desc').textContent = desc || '';
+            // Update active states in dropdown
+            const dropdown = document.getElementById('model-dropdown');
+            const models = activeMode === 'video' ? _videoModels : _imageModels;
+            dropdown.querySelectorAll('.model-dropdown-item').forEach((item, idx) => {
+                item.classList.toggle('active', models[idx] && models[idx].modelName === model.modelName);
+            });
+        }
+
+        function toggleModelDropdown() {
+            const btn = document.getElementById('model-select-btn');
+            const dropdown = document.getElementById('model-dropdown');
+            btn.classList.toggle('open');
+            dropdown.classList.toggle('open');
+        }
+
+        function closeModelDropdown() {
+            document.getElementById('model-select-btn').classList.remove('open');
+            document.getElementById('model-dropdown').classList.remove('open');
+        }
+
+        document.getElementById('model-select-btn').addEventListener('click', toggleModelDropdown);
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('model-select-wrap').contains(e.target)) {
+                closeModelDropdown();
+            }
+        });
+
+        function selectImageModel(model) {
+            selectedImageModel = model;
+            updateModelSelectBtn(model);
+
+            // Update Resolution pills
+            const resContainer = document.getElementById('pills-resolutions');
+            const resolutions = model.resolution || ["1K"];
+            renderPills(resContainer, resolutions, (r) => r, (r) => {
+                selectedResolution = r;
+                calculateCost();
+            });
+
+            // Update Ratio pills
+            const ratioContainer = document.getElementById('pills-ratios');
+            const sizes = model.size || [{ ratio: "1:1" }];
+            const ratios = sizes.map(s => s.ratio);
+            renderPills(ratioContainer, ratios, (r) => r, (r) => {
+                selectedRatio = r;
+                calculateCost();
+            });
+
+            // Hide Video only configs
+            document.getElementById('field-durations').style.display = 'none';
+            document.getElementById('field-audio').style.display = 'none';
+            document.getElementById('field-resolutions').style.display = 'flex';
+            document.getElementById('field-ratios').style.display = 'flex';
+            document.getElementById('ctrl-video-multi-img').style.display = 'none';
+
+            calculateCost();
+        }
+
+        function selectVideoModel(model) {
+            selectedVideoModel = model;
+            updateModelSelectBtn(model);
+
+            // Update Video Resolution pills
+            const resContainer = document.getElementById('pills-resolutions');
+            const resolutions = model.videoResolution || ["720"];
+            renderPills(resContainer, resolutions, (r) => r + "p", (r) => {
+                selectedResolution = r;
+                calculateCost();
+            });
+
+            // Update duration pills (some duration items have custom icons)
+            const durContainer = document.getElementById('pills-durations');
+            const durations = model.duration || [{ value: 5 }];
+            renderPills(durContainer, durations, (d) => {
+                const label = `${d.value} Saniye`;
+                const clockSvg = `<svg class="studio-icon" style="margin-right: 4px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z" /></svg>`;
+                return `${clockSvg}${label}`;
+            }, (val) => {
+                selectedDuration = val;
+                calculateCost();
+            }, (d) => d.value);
+
+            // Audio capability
+            const audioSwitchRow = document.getElementById('field-audio');
+            if (model.supportAudio) {
+                audioSwitchRow.style.display = 'flex';
+            } else {
+                audioSwitchRow.style.display = 'none';
+                audioEnabled = false;
+                document.getElementById('audio-toggle-switch').classList.remove('active');
+            }
+
+            // Reference Modes UI updates:
+            // Check if model has reference capabilities
+            const hasRef = !!model.pointCostReference;
+            const hasMotion = !!model.pointCostMotion;
+            const multiInput = document.getElementById('ctrl-video-multi-img');
+
+            if (hasRef || hasMotion) {
+                multiInput.style.display = 'flex';
+            } else {
+                multiInput.style.display = 'none';
+            }
+
+            // Hide ratio config for video
+            document.getElementById('field-durations').style.display = 'flex';
+            document.getElementById('field-resolutions').style.display = 'flex';
+            document.getElementById('field-ratios').style.display = 'none';
+
+            calculateCost();
+        }
+
+        function renderPills(container, items, labelFormatter, onSelect, valueExtractor = (i) => i) {
+            container.innerHTML = '';
+            items.forEach((item, idx) => {
+                const val = valueExtractor(item);
+                const pill = document.createElement('div');
+                pill.className = `pill ${idx === 0 ? 'active' : ''}`;
+                pill.innerHTML = labelFormatter(item);
+                if (idx === 0) onSelect(val);
+                pill.addEventListener('click', () => {
+                    container.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+                    pill.classList.add('active');
+                    onSelect(val);
+                });
+                container.appendChild(pill);
+            });
+        }
+
+        // Audio toggle handler
+        document.getElementById('audio-toggle-switch').addEventListener('click', function() {
+            if (selectedVideoModel && selectedVideoModel.supportAudio) {
+                audioEnabled = !audioEnabled;
+                this.classList.toggle('active', audioEnabled);
+                calculateCost();
+            }
+        });
+
+        // ------------------ COST CALCULATION ------------------
+        function calculateCost() {
+            let cost = 0;
+            let aiType = 0;
+
+            if (activeMode === 'image') {
+                if (selectedImageModel) {
+                    cost = findImagePointCostLocal(selectedImageModel.modelName, selectedResolution);
+                }
+                generateBtn.textContent = `🎨 RESİM ÜRET (${cost} Kredi)`;
+            } else {
+                if (selectedVideoModel) {
+                    // Check mode: frame_based vs reference vs motion vs standard
+                    let scene = 'image'; // standard
+                    if (startFile && endFile) {
+                        scene = 'frame_based';
+                    } else if (vidImgFiles.length > 1) {
+                        scene = 'reference';
+                    } else if (vidImgFiles.length === 1 && selectedVideoModel.pointCostMotion) {
+                        scene = 'motion';
+                    }
+                    
+                    const res = findVideoPointCostLocal(selectedVideoModel.modelName, selectedResolution, selectedDuration, audioEnabled, scene);
+                    cost = res.point;
+                    aiType = res.aiType;
+                }
+                generateBtn.textContent = `🎬 VİDEO ÜRET (${cost} Kredi)`;
+            }
+            generateBtn.dataset.cost = cost;
+            generateBtn.dataset.aiType = aiType;
+        }
+
+        function findImagePointCostLocal(modelName, res) {
+            if (!_imageModels) return 0;
+            // Simulated local cost finder mapping backend Oreate JSON list
+            const model = _imageModels.find(m => m.modelName === modelName);
+            if (!model) return 0;
+            const costs = model.pointCost || [];
+            const match = costs.find(c => c.resolution.toLowerCase() === (res || "").toLowerCase());
+            return match ? match.point : (costs[0] ? costs[0].point : 0);
+        }
+
+        function findVideoPointCostLocal(modelName, res, duration, isAudio, scene) {
+            const model = _videoModels.find(m => m.modelName === modelName);
+            if (!model) return { point: 0, aiType: 0 };
+
+            if (scene === 'motion' && model.pointCostMotion) {
+                const match = model.pointCostMotion.find(c => String(c.resolution) === String(res) && c.motDuration === duration);
+                if (match) return { point: match.point, aiType: match.aiType };
+            }
+            if (scene === 'reference' && model.pointCostReference) {
+                const match = model.pointCostReference.find(c => String(c.resolution) === String(res) && c.duration === duration);
+                if (match) return { point: match.point, aiType: match.aiType };
+            }
+            // standard or frame_based
+            const costs = model.pointCostImage || [];
+            const match = costs.find(c => String(c.resolution) === String(res) && c.duration === duration && c.audio === isAudio);
+            if (match) return { point: match.point, aiType: match.aiType };
+            
+            const matchNoAudio = costs.find(c => String(c.resolution) === String(res) && c.duration === duration);
+            if (matchNoAudio) return { point: matchNoAudio.point, aiType: matchNoAudio.aiType };
+
+            return costs[0] ? { point: costs[0].point, aiType: costs[0].aiType } : { point: 0, aiType: 0 };
+        }
+
+        // ------------------ TASK SUBMISSION & POLLING ------------------
+
+        generateBtn.addEventListener('click', () => {
+            const prompt = document.getElementById('prompt-input').value.trim();
+            if (!prompt) {
+                showToast("Komut girmelisiniz!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('mode', activeMode);
+            formData.append('prompt', prompt);
+
+            if (activeMode === 'image') {
+                if (!selectedImageModel) return;
+                formData.append('model', selectedImageModel.modelName);
+                formData.append('resolution', selectedResolution);
+                formData.append('ratio', selectedRatio);
+                imgFiles.forEach(f => formData.append('images', f));
+            } else {
+                if (!selectedVideoModel) return;
+                formData.append('model', selectedVideoModel.modelName);
+                formData.append('resolution', selectedResolution);
+                formData.append('duration', selectedDuration);
+                formData.append('audio', audioEnabled);
+                formData.append('ai_type', generateBtn.dataset.aiType || '0');
+
+                // Determine scene
+                let scene = 'text_or_image';
+                if (startFile && endFile) {
+                    scene = 'frame_based';
+                    formData.append('image', startFile);
+                    formData.append('end_image', endFile);
+                } else if (vidImgFiles.length > 1) {
+                    scene = 'reference';
+                    vidImgFiles.forEach(f => formData.append('images', f));
+                } else if (vidImgFiles.length === 1) {
+                    // standard upload or motion
+                    if (selectedVideoModel.pointCostMotion) {
+                        scene = 'motion';
+                    }
+                    formData.append('images', vidImgFiles[0]);
+                } else if (startFile) {
+                    formData.append('images', startFile);
+                }
+                formData.append('scene', scene);
+            }
+
+            generateBtn.disabled = true;
+            showToast("Üretim görevi gönderiliyor...");
+
+            fetch('/start_task', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(d => {
+                generateBtn.disabled = false;
+                if (d.error) {
+                    showToast(`Görev başlatılamadı: ${d.error}`);
+                } else {
+                    showToast("Görev başarıyla başlatıldı!");
+                    switchTab('generations');
+                    createJobCard(d.task_id, prompt, activeMode === 'image' ? selectedImageModel.modelName : selectedVideoModel.modelName, activeMode);
+                    pollTask(d.task_id);
+                }
+            })
+            .catch(err => {
+                generateBtn.disabled = false;
+                showToast("Görev gönderimi sırasında bağlantı hatası oluştu.");
+            });
+        });
+
+        function createJobCard(id, prompt, modelName, mode) {
+            // Hide empty state
+            document.getElementById('empty-generations').style.display = 'none';
+
+            const grid = document.getElementById('grid-generations');
+            const card = document.createElement('div');
+            card.className = 'job-card';
+            card.id = `task-card-${id}`;
+            card.innerHTML = `
+                <div class="job-thumb" id="thumb-wrap-${id}">
+                    <span class="job-status-badge badge-running" id="badge-${id}">Running</span>
+                    <button class="job-card-delete" onclick="deleteTaskCard('${id}')" style="display:none">✕</button>
+                    <div class="job-progress-bar">
+                        <div class="job-progress-fill running" id="prog-${id}"></div>
+                    </div>
+                </div>
+                <div class="job-card-body">
+                    <div class="prompt-desc-row">
+                        <div class="job-prompt-txt" title="${prompt}">${prompt}</div>
+                        <svg class="studio-icon copy-ico-svg" viewBox="0 0 24 24" onclick="copyText('${prompt.replace(/'/g, "\\'")}')"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" /></svg>
+                    </div>
+                    <div class="job-card-meta">
+                        <span class="meta-badge">${mode.toUpperCase()}</span>
+                        <span class="meta-badge">${modelName}</span>
+                    </div>
+                    <div class="job-card-log" id="log-wrap-${id}">
+                        <div class="log-line latest">Sıraya alınıyor...</div>
+                    </div>
+                    <div class="job-card-actions" id="actions-${id}" style="display: none;"></div>
+                </div>
+            `;
+            grid.insertBefore(card, grid.firstChild);
+            updateTabsCounts();
+        }
+
+        function pollTask(id) {
+            const interval = setInterval(() => {
+                fetch(`/task_status/${id}`)
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.error) {
+                            clearInterval(interval);
+                            return;
+                        }
+
+                        // Update log lines
+                        const logWrap = document.getElementById(`log-wrap-${id}`);
+                        if (logWrap && d.logs) {
+                            logWrap.innerHTML = '';
+                            d.logs.forEach((log, index) => {
+                                const line = document.createElement('div');
+                                line.className = `log-line ${index === d.logs.length - 1 ? 'latest' : ''}`;
+                                line.textContent = log;
+                                logWrap.appendChild(line);
+                            });
+                            logWrap.scrollTop = logWrap.scrollHeight;
+                        }
+
+                        // Check status
+                        if (d.status === 'Tamamlandı') {
+                            clearInterval(interval);
+                            finishTaskCard(id, d.result_url, d.result_type, d.prompt, d.model);
+                        } else if (d.status === 'Hata') {
+                            clearInterval(interval);
+                            const badge = document.getElementById(`badge-${id}`);
+                            if (badge) {
+                                badge.className = 'job-status-badge badge-error';
+                                badge.textContent = 'Hata';
+                            }
+                            const prog = document.getElementById(`prog-${id}`);
+                            if (prog) prog.style.width = '0%';
+                        }
+                    })
+                    .catch(() => {
+                        clearInterval(interval);
+                    });
+            }, 4000);
+            activeTasks[id] = interval;
+        }
+
+        function finishTaskCard(id, url, type, prompt, model) {
+            const badge = document.getElementById(`badge-${id}`);
+            if (badge) {
+                badge.className = 'job-status-badge badge-done';
+                badge.textContent = 'Tamamlandı';
+            }
+            const prog = document.getElementById(`prog-${id}`);
+            if (prog) {
+                prog.style.width = '100%';
+                prog.classList.remove('running');
+            }
+
+            // Show delete card option
+            const delBtn = document.querySelector(`#task-card-${id} .job-card-delete`);
+            if (delBtn) delBtn.style.display = 'flex';
+
+            // Show media preview
+            const thumbWrap = document.getElementById(`thumb-wrap-${id}`);
+            if (thumbWrap) {
+                thumbWrap.innerHTML = `
+                    <span class="job-status-badge badge-done">Done</span>
+                    <button class="job-card-delete" onclick="deleteTaskCard('${id}')">✕</button>
+                    ${type === 'video' 
+                        ? `<video src="${url}" autoplay loop muted playsinline></video>` 
+                        : `<img src="${url}">`
+                    }
+                `;
+            }
+
+            // Actions panel setup
+            const actionsPanel = document.getElementById(`actions-${id}`);
+            if (actionsPanel) {
+                actionsPanel.style.display = 'grid';
+                const proxiedUrl = type === 'video' ? `/proxy_video?url=${encodeURIComponent(url)}` : `/proxy_image?url=${encodeURIComponent(url)}`;
+                const downloadUrl = type === 'video' ? `/proxy_video?url=${encodeURIComponent(url)}&dl=1` : `/proxy_image?url=${encodeURIComponent(url)}`;
+
+                actionsPanel.innerHTML = `
+                    <a href="${downloadUrl}" class="btn-card-action btn-card-primary" target="_blank">
+                        <svg class="studio-icon" viewBox="0 0 24 24" style="margin-right:3px;"><path fill="currentColor" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>
+                        İNDİR
+                    </a>
+                    <button class="btn-card-action" onclick="openLightbox('${proxiedUrl}', '${type}')">
+                        <svg class="studio-icon" viewBox="0 0 24 24" style="margin-right:3px;"><path fill="currentColor" d="M15.5,14L20.5,19L19,20.5L14,15.5V14.5L13.61,14.11C12.44,15.1 10.9,15.7 9.2,15.7C5.64,15.7 2.75,12.8 2.75,9.2C2.75,5.64 5.64,2.75 9.2,2.75C12.75,2.75 15.65,5.64 15.65,9.2C15.65,10.9 15.1,12.42 14.11,13.6L14.5,14H15.5M9.2,14.25C12,14.25 14.25,12 14.25,9.2C14.25,6.43 12,4.18 9.2,4.18C6.42,4.18 4.18,6.43 4.18,9.2C4.18,12 6.42,14.25 9.2,14.25Z" /></svg>
+                        BÜYÜT
+                    </button>
+                    <button class="btn-card-action" onclick="openSendToMenu(this, '${proxiedUrl}', '${type}', '${prompt.replace(/'/g, "\\'")}')">
+                        <svg class="studio-icon" viewBox="0 0 24 24" style="margin-right:3px;"><path fill="currentColor" d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" /></svg>
+                        PORTAL
+                    </button>
+                `;
+            }
+
+            // Auto save to Flask server gallery
+            const item = {
+                id: id,
+                prompt: prompt,
+                model: model,
+                resultType: type,
+                url: url,
+                timestamp: Math.floor(Date.now() / 1000)
+            };
+
+            fetch('/gallery_add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+            }).then(() => {
+                loadGallery();
+            });
+        }
+
+        function deleteTaskCard(id) {
+            const card = document.getElementById(`task-card-${id}`);
+            if (card) card.remove();
+            if (activeTasks[id]) {
+                clearInterval(activeTasks[id]);
+                delete activeTasks[id];
+            }
+            updateTabsCounts();
+            checkEmptyStates();
+        }
+
+        // Restore tasks on page load
+        function restoreActiveTasks() {
+            fetch('/get_tasks')
+                .then(r => r.json())
+                .then(d => {
+                    const keys = Object.keys(d);
+                    if (keys.length > 0) {
+                        document.getElementById('empty-generations').style.display = 'none';
+                        // Rerender all
+                        keys.forEach(k => {
+                            const t = d[k];
+                            createJobCard(t.id, t.prompt, t.model, t.mode);
+
+                            // Restore existing logs from server
+                            const logWrap = document.getElementById(`log-wrap-${t.id}`);
+                            if (logWrap && t.logs && t.logs.length > 0) {
+                                logWrap.innerHTML = '';
+                                t.logs.forEach((log, index) => {
+                                    const line = document.createElement('div');
+                                    line.className = `log-line ${index === t.logs.length - 1 ? 'latest' : ''}`;
+                                    line.textContent = log;
+                                    logWrap.appendChild(line);
+                                });
+                                logWrap.scrollTop = logWrap.scrollHeight;
+                            }
+
+                            if (t.status === 'Tamamlandı') {
+                                finishTaskCard(t.id, t.result_url, t.result_type, t.prompt, t.model);
+                            } else if (t.status === 'Hata') {
+                                const badge = document.getElementById(`badge-${t.id}`);
+                                if (badge) {
+                                    badge.className = 'job-status-badge badge-error';
+                                    badge.textContent = 'Hata';
+                                }
+                            } else {
+                                pollTask(t.id);
+                            }
+                        });
+                    }
+                });
+        }
+
+        // ------------------ GALLERY ------------------
+        function loadGallery() {
+            fetch('/get_gallery')
+                .then(r => r.json())
+                .then(d => {
+                    const grid = document.getElementById('grid-gallery');
+                    const empty = document.getElementById('empty-gallery');
+                    grid.innerHTML = '';
+                    
+                    if (!d || d.length === 0) {
+                        empty.style.display = 'flex';
+                    } else {
+                        empty.style.display = 'none';
+                        d.forEach(item => {
+                            const proxiedUrl = item.resultType === 'video' ? `/proxy_video?url=${encodeURIComponent(item.url)}` : `/proxy_image?url=${encodeURIComponent(item.url)}`;
+                            const downloadUrl = item.resultType === 'video' ? `/proxy_video?url=${encodeURIComponent(item.url)}&dl=1` : `/proxy_image?url=${encodeURIComponent(item.url)}`;
+                            const card = document.createElement('div');
+                            card.className = 'job-card';
+                            card.innerHTML = `
+                                <div class="job-thumb">
+                                    <button class="job-card-delete" onclick="deleteGalleryItem('${item.id}')">✕</button>
+                                    ${item.resultType === 'video'
+                                        ? `<video src="${proxiedUrl}" autoplay loop muted playsinline></video>`
+                                        : `<img src="${proxiedUrl}">`
+                                    }
+                                </div>
+                                <div class="job-card-body">
+                                    <div class="prompt-desc-row">
+                                        <div class="job-prompt-txt" title="${item.prompt}">${item.prompt}</div>
+                                        <svg class="studio-icon copy-ico-svg" viewBox="0 0 24 24" onclick="copyText('${item.prompt.replace(/'/g, "\\'")}')"><path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" /></svg>
+                                    </div>
+                                    <div class="job-card-meta">
+                                        <span class="meta-badge">${item.resultType.toUpperCase()}</span>
+                                        <span class="meta-badge">${item.model}</span>
+                                        <span class="meta-badge">${formatDate(item.timestamp)}</span>
+                                    </div>
+                                    <div class="job-card-actions">
+                                        <a href="${downloadUrl}" class="btn-card-action btn-card-primary" target="_blank">
+                                            <svg class="studio-icon" viewBox="0 0 24 24" style="margin-right:3px;"><path fill="currentColor" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>
+                                            İNDİR
+                                        </a>
+                                        <button class="btn-card-action" onclick="openLightbox('${proxiedUrl}', '${item.resultType}')">
+                                            <svg class="studio-icon" viewBox="0 0 24 24" style="margin-right:3px;"><path fill="currentColor" d="M15.5,14L20.5,19L19,20.5L14,15.5V14.5L13.61,14.11C12.44,15.1 10.9,15.7 9.2,15.7C5.64,15.7 2.75,12.8 2.75,9.2C2.75,5.64 5.64,2.75 9.2,2.75C12.75,2.75 15.65,5.64 15.65,9.2C15.65,10.9 15.1,12.42 14.11,13.6L14.5,14H15.5M9.2,14.25C12,14.25 14.25,12 14.25,9.2C14.25,6.43 12,4.18 9.2,4.18C6.42,4.18 4.18,6.43 4.18,9.2C4.18,12 6.42,14.25 9.2,14.25Z" /></svg>
+                                            BÜYÜT
+                                        </button>
+                                        <button class="btn-card-action" onclick="openSendToMenu(this, '${proxiedUrl}', '${item.resultType}', '${item.prompt.replace(/'/g, "\\'")}')">
+                                            <svg class="studio-icon" viewBox="0 0 24 24" style="margin-right:3px;"><path fill="currentColor" d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" /></svg>
+                                            PORTAL
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            grid.appendChild(card);
+                        });
+                    }
+                    updateTabsCounts();
+                });
+        }
+
+        function deleteGalleryItem(id) {
+            fetch(`/delete_gallery/${id}`, { method: 'DELETE' })
+                .then(() => {
+                    loadGallery();
+                    showToast("Öğe galeriden silindi.");
+                });
+        }
+
+        // ------------------ EDITOR PLAYLIST TIMELINE ------------------
+        const playlistContainer = document.getElementById('editor-playlist');
+        const emptyPlaylist = document.getElementById('empty-playlist');
+        const playerViewport = document.getElementById('player-viewport');
+        const playerPlaceholder = document.getElementById('player-placeholder');
+        const playBtn = document.getElementById('player-play-btn');
+        const timelineFill = document.getElementById('player-timeline-fill');
+        const clipCounter = document.getElementById('player-counter');
+
+        function editorAdd(url, type, label) {
+            emptyPlaylist.style.display = 'none';
+            const item = { url, type, label };
+            editorPlaylist.push(item);
+            
+            const div = document.createElement('div');
+            div.className = 'playlist-item';
+            const idx = editorPlaylist.length - 1;
+            div.dataset.index = idx;
+            
+            div.innerHTML = `
+                <div class="playlist-thumb">
+                    ${type === 'video'
+                        ? `<video src="${url}" muted></video>`
+                        : `<img src="${url}">`
+                    }
+                </div>
+                <div class="playlist-info">
+                    <div class="playlist-prompt">${label}</div>
+                    <div class="playlist-meta">${type.toUpperCase()}</div>
+                </div>
+                <span class="playlist-remove">✕</span>
+            `;
+
+            div.querySelector('.playlist-remove').addEventListener('click', (e) => {
+                e.stopPropagation();
+                editorPlaylist.splice(idx, 1);
+                editorRenderPlaylist();
+            });
+
+            div.addEventListener('click', () => {
+                editorSelectClip(idx);
+            });
+
+            playlistContainer.appendChild(div);
+            
+            if (editorPlaylist.length === 1) {
+                editorSelectClip(0);
+            }
+            updateTabsCounts();
+            showToast("Editör oynatma listesine eklendi!");
+        }
+
+        function editorRenderPlaylist() {
+            playlistContainer.innerHTML = '';
+            if (editorPlaylist.length === 0) {
+                emptyPlaylist.style.display = 'block';
+                playerViewport.innerHTML = `
+                    <div class="player-placeholder" id="player-placeholder">
+                        <span>📺</span>
+                        <p>Oynatılacak Klip Yok</p>
+                    </div>
+                `;
+                playBtn.disabled = true;
+                clipCounter.textContent = '0 / 0';
+                timelineFill.style.width = '0%';
+                editorPlaying = false;
+                playBtn.textContent = 'OYNAT';
+                return;
+            }
+
+            editorPlaylist.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = `playlist-item ${idx === editorIndex ? 'active' : ''}`;
+                div.innerHTML = `
+                    <div class="playlist-thumb">
+                        ${item.type === 'video'
+                            ? `<video src="${item.url}" muted></video>`
+                            : `<img src="${item.url}">`
+                        }
+                    </div>
+                    <div class="playlist-info">
+                        <div class="playlist-prompt">${item.label}</div>
+                        <div class="playlist-meta">${item.type.toUpperCase()}</div>
+                    </div>
+                    <span class="playlist-remove">✕</span>
+                `;
+                div.querySelector('.playlist-remove').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    editorPlaylist.splice(idx, 1);
+                    if (editorIndex >= editorPlaylist.length) {
+                        editorIndex = Math.max(0, editorPlaylist.length - 1);
+                    }
+                    editorRenderPlaylist();
+                });
+                div.addEventListener('click', () => {
+                    editorSelectClip(idx);
+                });
+                playlistContainer.appendChild(div);
+            });
+            editorSelectClip(editorIndex);
+            updateTabsCounts();
+        }
+
+        function editorSelectClip(idx) {
+            if (!editorPlaylist[idx]) return;
+            editorIndex = idx;
+            const item = editorPlaylist[idx];
+            
+            document.querySelectorAll('.playlist-item').forEach((el, i) => {
+                el.classList.toggle('active', i === idx);
+            });
+
+            playerViewport.innerHTML = '';
+            playBtn.disabled = false;
+            clipCounter.textContent = `${idx + 1} / ${editorPlaylist.length}`;
+
+            if (item.type === 'video') {
+                const video = document.createElement('video');
+                video.src = item.url;
+                video.controls = false;
+                video.autoplay = editorPlaying;
+                video.addEventListener('ended', editorNextClip);
+                video.addEventListener('timeupdate', () => {
+                    if (video.duration) {
+                        const pct = (video.currentTime / video.duration) * 100;
+                        timelineFill.style.width = pct + '%';
+                    }
+                });
+                playerViewport.appendChild(video);
+                if (editorPlaying) video.play();
+            } else {
+                const img = document.createElement('img');
+                img.src = item.url;
+                playerViewport.appendChild(img);
+                timelineFill.style.width = '0%';
+                if (editorPlaying) {
+                    startImageTimer();
+                }
+            }
+        }
+
+        function startImageTimer() {
+            if (editorTimer) clearTimeout(editorTimer);
+            let elapsed = 0;
+            const total = 3000; // 3 seconds per image
+            const step = 50;
+
+            const tick = () => {
+                if (!editorPlaying) return;
+                elapsed += step;
+                timelineFill.style.width = (elapsed / total) * 100 + '%';
+                if (elapsed >= total) {
+                    editorNextClip();
+                } else {
+                    editorTimer = setTimeout(tick, step);
+                }
+            };
+            editorTimer = setTimeout(tick, step);
+        }
+
+        function editorNextClip() {
+            if (editorIndex + 1 < editorPlaylist.length) {
+                editorSelectClip(editorIndex + 1);
+            } else {
+                // loop playlist
+                editorSelectClip(0);
+            }
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (editorPlaylist.length === 0) return;
+            editorPlaying = !editorPlaying;
+            
+            if (editorPlaying) {
+                playBtn.textContent = 'DURDUR';
+                const current = playerViewport.querySelector('video');
+                if (current) {
+                    current.play();
+                } else {
+                    startImageTimer();
+                }
+            } else {
+                playBtn.textContent = 'OYNAT';
+                const current = playerViewport.querySelector('video');
+                if (current) current.pause();
+                if (editorTimer) clearTimeout(editorTimer);
+            }
+        });
+
+        document.getElementById('player-clear-btn').addEventListener('click', () => {
+            editorPlaylist = [];
+            editorRenderPlaylist();
+        });
+
+        // ------------------ PROMPTS LIBRARY ------------------
+
+        function loadPrompts() {
+            fetch('/get_prompts')
+                .then(r => r.json())
+                .then(d => {
+                    _savedPrompts = d || [];
+                    renderPrompts();
+                });
+        }
+
+        function renderPrompts() {
+            const list = document.getElementById('prompts-list');
+            const empty = document.getElementById('empty-prompts');
+            list.innerHTML = '';
+            
+            if (_savedPrompts.length === 0) {
+                empty.style.display = 'flex';
+            } else {
+                empty.style.display = 'none';
+                _savedPrompts.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'prompt-lib-card';
+                    card.innerHTML = `
+                        <div class="prompt-lib-txt">${p.text}</div>
+                        <div class="prompt-lib-actions">
+                            <button class="prompt-lib-action-btn use-btn">Kullan</button>
+                            <button class="prompt-lib-action-btn del-btn">Sil</button>
+                        </div>
+                    `;
+                    card.querySelector('.use-btn').addEventListener('click', () => {
+                        document.getElementById('prompt-input').value = p.text;
+                        showToast("Prompt ana komut satırına uygulandı!");
+                    });
+                    card.querySelector('.del-btn').addEventListener('click', () => {
+                        deletePrompt(p.id);
+                    });
+                    list.appendChild(card);
+                });
+            }
+            updateTabsCounts();
+        }
+
+        function deletePrompt(id) {
+            fetch(`/delete_prompt/${id}`, { method: 'DELETE' })
+                .then(() => {
+                    _savedPrompts = _savedPrompts.filter(p => p.id !== id);
+                    renderPrompts();
+                    showToast("Prompt silindi.");
+                });
+        }
+
+        document.getElementById('prompt-lib-add-btn').addEventListener('click', () => {
+            const input = document.getElementById('prompt-lib-input');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            fetch('/save_prompt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.error) {
+                    showToast(d.error);
+                } else {
+                    _savedPrompts.push(d);
+                    input.value = '';
+                    renderPrompts();
+                    showToast("Prompt kütüphaneye eklendi.");
+                }
+            });
+        });
+
+        // ------------------ MODAL OVERLAY LIGHTBOX ------------------
+        const lightbox = document.getElementById('modal-lightbox');
+        const mediaWrap = document.getElementById('modal-media-wrap');
+        const videoTime = document.getElementById('modal-video-time');
+        let currentModalVideo = null;
+        let videoTimeInterval = null;
+        let currentModalUrl = null;
+        let currentModalType = null;
+
+        function openLightbox(url, type) {
+            mediaWrap.innerHTML = '';
+            lightbox.classList.add('open');
+            
+            const controlsBar = document.getElementById('modal-controls-bar');
+            const btnStart = document.getElementById('modal-btn-start');
+            const btnEnd = document.getElementById('modal-btn-end');
+            const btnRef = document.getElementById('modal-btn-ref');
+            
+            currentModalUrl = url;
+            currentModalType = type;
+            
+            controlsBar.style.display = 'flex';
+
+            if (type === 'video') {
+                const video = document.createElement('video');
+                video.src = url;
+                video.controls = true;
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true; // Auto muted
+                mediaWrap.appendChild(video);
+                
+                currentModalVideo = video;
+                videoTime.style.display = 'block';
+                btnRef.style.display = 'none';
+                btnStart.style.display = 'block';
+                btnEnd.style.display = 'block';
+                
+                videoTimeInterval = setInterval(() => {
+                    videoTime.textContent = formatTime(video.currentTime);
+                }, 250);
+            } else {
+                const img = document.createElement('img');
+                img.src = url;
+                mediaWrap.appendChild(img);
+                
+                currentModalVideo = null;
+                videoTime.style.display = 'none';
+                btnRef.style.display = 'block';
+                btnStart.style.display = 'block';
+                btnEnd.style.display = 'block';
+            }
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('open');
+            mediaWrap.innerHTML = '';
+            if (videoTimeInterval) clearInterval(videoTimeInterval);
+            currentModalVideo = null;
+        }
+
+        document.getElementById('modal-close').addEventListener('click', closeLightbox);
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        function applyImageFromModal(target) {
+            if (!currentModalUrl) return;
+            showToast("Görsel portala aktarılıyor...");
+            fetch(currentModalUrl)
+                .then(res => res.blob())
+                .then(blob => {
+                    const file = new File([blob], "portal_image.png", { type: blob.type });
+                    if (target === 'start') {
+                        const input = document.getElementById('file-start-frame');
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        input.files = dt.files;
+                        
+                        const dz = document.getElementById('dz-start-frame');
+                        const preview = dz.querySelector('.dz-preview');
+                        preview.querySelector('img').src = URL.createObjectURL(file);
+                        preview.classList.add('active');
+                        startFile = file;
+                        switchMode('video');
+                    } else if (target === 'end') {
+                        const input = document.getElementById('file-end-frame');
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        input.files = dt.files;
+                        
+                        const dz = document.getElementById('dz-end-frame');
+                        const preview = dz.querySelector('.dz-preview');
+                        preview.querySelector('img').src = URL.createObjectURL(file);
+                        preview.classList.add('active');
+                        endFile = file;
+                        switchMode('video');
+                    } else if (target === 'ref') {
+                        imgFiles.push(file);
+                        renderImageRefsList();
+                        switchMode('image');
+                    }
+                    calculateCost();
+                    closeLightbox();
+                    showToast("Görsel portala başarıyla aktarıldı!");
+                })
+                .catch(() => {
+                    showToast("Aktarım hatası!");
+                });
+        }
+
+        document.getElementById('modal-btn-start').addEventListener('click', () => {
+            if (currentModalType === 'video') {
+                captureFrameToDropzone('dz-start-frame', 'file-start-frame');
+            } else {
+                applyImageFromModal('start');
+            }
+        });
+
+        document.getElementById('modal-btn-end').addEventListener('click', () => {
+            if (currentModalType === 'video') {
+                captureFrameToDropzone('dz-end-frame', 'file-end-frame');
+            } else {
+                applyImageFromModal('end');
+            }
+        });
+
+        document.getElementById('modal-btn-ref').addEventListener('click', () => {
+            applyImageFromModal('ref');
+        });
+
+        function captureFrameToDropzone(dzId, fileInputId) {
+            if (!currentModalVideo) return;
+            const canvas = document.getElementById('frame-canvas');
+            canvas.width = currentModalVideo.videoWidth || 1280;
+            canvas.height = currentModalVideo.videoHeight || 720;
+            const ctx = canvas.getContext('2d');
+            
+            try {
+                ctx.drawImage(currentModalVideo, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob((blob) => {
+                    const file = new File([blob], "captured_frame.png", { type: "image/png" });
+                    
+                    // Bind to input element & call handler manually
+                    const input = document.getElementById(fileInputId);
+                    const container = new DataTransfer();
+                    container.items.add(file);
+                    input.files = container.files;
+                    
+                    // Update preview
+                    const dz = document.getElementById(dzId);
+                    const preview = dz.querySelector('.dz-preview');
+                    const url = URL.createObjectURL(file);
+                    preview.querySelector('img').src = url;
+                    preview.classList.add('active');
+
+                    if (dzId === 'dz-start-frame') {
+                        startFile = file;
+                    } else {
+                        endFile = file;
+                    }
+                    calculateCost();
+                    closeLightbox();
+                    showToast("Video karesi portala başarıyla aktarıldı!");
+                }, 'image/png');
+            } catch (e) {
+                // Handle CORS errors (using proxy)
+                showToast("CORS engeli! Bu videodan kare yakalanamıyor.");
+            }
+        }
+
+        // ------------------ PORTAL MENU (SEND TO SYSTEM) ------------------
+        const portal = document.getElementById('portal-context-menu');
+        let portalTargetData = null;
+
+        function openSendToMenu(btn, url, type, prompt) {
+            event.stopPropagation();
+            portalTargetData = { url, type, prompt };
+            
+            const rect = btn.getBoundingClientRect();
+            portal.classList.add('active');
+
+            // Disable end frame and reference options for images if in image mode
+            document.getElementById('portal-action-end').style.display = (type === 'video') ? 'none' : 'block';
+
+            // Calculate position with viewport boundary check
+            const menuHeight = portal.offsetHeight;
+            const menuWidth = portal.offsetWidth;
+            const viewportH = window.innerHeight;
+            const viewportW = window.innerWidth;
+
+            // Vertical: prefer below button, flip above if overflows
+            let top = rect.bottom + 6;
+            if (top + menuHeight > viewportH) {
+                top = rect.top - menuHeight - 6;
+                if (top < 0) top = 8;
+            }
+
+            // Horizontal: center on button, clamp to viewport
+            let left = rect.left + rect.width / 2 - menuWidth / 2;
+            if (left + menuWidth > viewportW - 8) left = viewportW - menuWidth - 8;
+            if (left < 8) left = 8;
+
+            portal.style.top = `${top}px`;
+            portal.style.left = `${left}px`;
+        }
+
+        document.addEventListener('click', () => {
+            portal.classList.remove('active');
+        });
+
+        document.getElementById('portal-action-editor').addEventListener('click', () => {
+            if (!portalTargetData) return;
+            editorAdd(portalTargetData.url, portalTargetData.type, portalTargetData.prompt);
+        });
+
+        document.getElementById('portal-action-start').addEventListener('click', () => {
+            if (!portalTargetData) return;
+            fetch(portalTargetData.url)
+                .then(res => res.blob())
+                .then(blob => {
+                    const file = new File([blob], "reference.png", { type: blob.type });
+                    const input = document.getElementById('file-start-frame');
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+                    
+                    const dz = document.getElementById('dz-start-frame');
+                    const preview = dz.querySelector('.dz-preview');
+                    preview.querySelector('img').src = URL.createObjectURL(file);
+                    preview.classList.add('active');
+                    startFile = file;
+                    
+                    switchMode('video');
+                    calculateCost();
+                    showToast("Başlangıç karesi olarak uygulandı.");
+                });
+        });
+
+        document.getElementById('portal-action-end').addEventListener('click', () => {
+            if (!portalTargetData) return;
+            fetch(portalTargetData.url)
+                .then(res => res.blob())
+                .then(blob => {
+                    const file = new File([blob], "reference.png", { type: blob.type });
+                    const input = document.getElementById('file-end-frame');
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+                    
+                    const dz = document.getElementById('dz-end-frame');
+                    const preview = dz.querySelector('.dz-preview');
+                    preview.querySelector('img').src = URL.createObjectURL(file);
+                    preview.classList.add('active');
+                    endFile = file;
+                    
+                    switchMode('video');
+                    calculateCost();
+                    showToast("Bitiş karesi olarak uygulandı.");
+                });
+        });
+
+        document.getElementById('portal-action-img-ref').addEventListener('click', () => {
+            if (!portalTargetData) return;
+            fetch(portalTargetData.url)
+                .then(res => res.blob())
+                .then(blob => {
+                    const file = new File([blob], "reference.png", { type: blob.type });
+                    imgFiles.push(file);
+                    renderMultiGrid('preview-grid-image-refs', imgFiles, (idx) => {
+                        imgFiles.splice(idx, 1);
+                        renderMultiGrid('preview-grid-image-refs', imgFiles, arguments.callee);
+                        calculateCost();
+                    });
+                    
+                    switchMode('image');
+                    calculateCost();
+                    showToast("Resim referans görseli olarak eklendi.");
+                });
+        });
+
+        // ------------------ TAB SYSTEM CONTROLLER ------------------
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabViews = document.querySelectorAll('.tab-view');
+        const clearTabBtn = document.getElementById('btn-clear-tab');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchTab(btn.dataset.tab);
+            });
+        });
+
+        function switchTab(tabName) {
+            tabBtns.forEach(b => {
+                b.classList.toggle('active', b.dataset.tab === tabName);
+            });
+            tabViews.forEach(v => {
+                v.classList.toggle('active', v.id === `tab-view-${tabName}`);
+            });
+
+            // Handle clear buttons visibility
+            if (tabName === 'gallery') {
+                clearTabBtn.style.display = 'block';
+                clearTabBtn.onclick = () => {
+                    if (confirm("Galeri klasöründeki tüm üretimleri silmek istediğinize emin misiniz?")) {
+                        fetch('/clear_gallery', { method: 'DELETE' }).then(() => loadGallery());
+                    }
+                };
+            } else if (tabName === 'generations') {
+                clearTabBtn.style.display = 'block';
+                clearTabBtn.onclick = () => {
+                    document.getElementById('grid-generations').innerHTML = '';
+                    activeTasks = {};
+                    checkEmptyStates();
+                    updateTabsCounts();
+                };
+            } else {
+                clearTabBtn.style.display = 'none';
+            }
+        }
+
+        function updateTabsCounts() {
+            // Generations count
+            const genCount = document.querySelectorAll('#grid-generations .job-card').length;
+            document.getElementById('count-generations').textContent = genCount;
+
+            // Gallery count
+            const galCount = document.querySelectorAll('#grid-gallery .job-card').length;
+            document.getElementById('count-gallery').textContent = galCount;
+
+            // Editor count
+            document.getElementById('count-editor').textContent = editorPlaylist.length;
+
+            // Prompts count
+            document.getElementById('count-prompts').textContent = _savedPrompts.length;
+        }
+
+        function checkEmptyStates() {
+            const genGrid = document.getElementById('grid-generations');
+            const emptyGen = document.getElementById('empty-generations');
+            if (genGrid.children.length === 0) {
+                emptyGen.style.display = 'flex';
+            } else {
+                emptyGen.style.display = 'none';
+            }
+        }
+
+        // Initialize App on Page Load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadModels();
+            loadGallery();
+            loadPrompts();
+            restoreActiveTasks();
+            refreshCredits();
+        });
+    </script>
+    {% endif %}
+</body>
+</html>
