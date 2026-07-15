@@ -126,7 +126,7 @@ class OreateBot:
             "email": email,
             "ticketID": ticket_id,
             "password": enc_pw,
-            "jt": _fake_jt()
+            "jt": self._fake_jt()
         }
         r = self.session.post(
             f"{self.BASE}/passport/api/emailsignupin",
