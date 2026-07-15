@@ -1373,7 +1373,8 @@
             flex-shrink: 0;
         }
 
-        .playlist-thumb img {
+        .playlist-thumb img,
+        .playlist-thumb video {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -2179,7 +2180,7 @@
                 <!-- 🚀 Generations View -->
                 <div class="tab-view active" id="tab-view-generations">
                     <div class="empty-state" id="empty-generations">
-                        <span class="empty-icon">🎬</span>
+                        <span class="empty-icon"><svg viewBox="0 0 24 24" width="48" height="48" style="opacity:0.4"><path fill="currentColor" d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg></span>
                         <h3>Henüz Bir Üretim Bulunmuyor</h3>
                         <p>Sol paneldeki parametreleri doldurun ve Generate butonuna tıklayarak ilk üretiminizi başlatın.</p>
                     </div>
@@ -2189,7 +2190,7 @@
                 <!-- 🖼️ Gallery View -->
                 <div class="tab-view" id="tab-view-gallery">
                     <div class="empty-state" id="empty-gallery">
-                        <span class="empty-icon">🗂️</span>
+                        <span class="empty-icon"><svg viewBox="0 0 24 24" width="48" height="48" style="opacity:0.4"><path fill="currentColor" d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 10H6v-2h8v2zm4-4H6v-2h12v2z"/></svg></span>
                         <h3>Galeri Klasörü Boş</h3>
                         <p>Başarıyla tamamlanan üretimleriniz buraya otomatik olarak eklenir.</p>
                     </div>
@@ -2203,7 +2204,7 @@
                             <div class="editor-sb-title">Film Şeridi (Playlist)</div>
                             <div class="editor-playlist" id="editor-playlist">
                                 <div class="empty-state" id="empty-playlist" style="height: auto; padding: 2rem 0;">
-                                    <span class="empty-icon" style="font-size: 1.5rem;">📋</span>
+                                    <span class="empty-icon" style="font-size: 1.5rem;"><svg viewBox="0 0 24 24" width="24" height="24" style="opacity:0.4"><path fill="currentColor" d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM6 20V4h5v7h7v9H6z"/></svg></span>
                                     <p style="font-size: 0.65rem;">Galeriden veya üretimlerden görsellere tıklayıp "Editöre Gönder" seçeneğini kullanın.</p>
                                 </div>
                             </div>
@@ -2212,7 +2213,7 @@
                         <div class="editor-main-player">
                             <div class="player-viewport" id="player-viewport">
                                 <div class="player-placeholder" id="player-placeholder">
-                                    <span>📺</span>
+                                    <svg viewBox="0 0 24 24" width="48" height="48" style="opacity:0.3"><path fill="currentColor" d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zm-5-6l-7 4V7l7 4z"/></svg>
                                     <p>Oynatılacak Klip Yok</p>
                                 </div>
                             </div>
@@ -2923,7 +2924,7 @@
                 if (selectedImageModel) {
                     cost = findImagePointCostLocal(selectedImageModel.modelName, selectedResolution);
                 }
-                generateBtn.textContent = `🎨 RESİM ÜRET (${cost} Kredi)`;
+                generateBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px;margin-right:4px;"><path fill="currentColor" d="M21.64 13.15l-1.29-1.29a.49.49 0 0 0-.7 0l-1.79 1.79L15 10.79l1.79-1.79a.49.49 0 0 0 0-.7l-1.29-1.29a.49.49 0 0 0-.7 0L13 8.79 11.21 7l1.79-1.79a.49.49 0 0 0 0-.7L11.71 3.2a.49.49 0 0 0-.7 0L2.29 11.93a.49.49 0 0 0 0 .7l1.29 1.29a.49.49 0 0 0 .7 0L6.07 12.13 7.86 13.93l-1.79 1.79a.49.49 0 0 0 0 .7l1.29 1.29a.49.49 0 0 0 .7 0l1.79-1.79 1.79 1.79-1.79 1.79a.49.49 0 0 0 0 .7l1.29 1.29a.49.49 0 0 0 .7 0l8.71-8.71a.49.49 0 0 0 .03-.73z"/></svg> RESİM ÜRET (${cost} Kredi)`;
             } else {
                 if (selectedVideoModel) {
                     // Check mode: frame_based vs reference vs motion vs standard
@@ -2940,7 +2941,7 @@
                     cost = res.point;
                     aiType = res.aiType;
                 }
-                generateBtn.textContent = `🎬 VİDEO ÜRET (${cost} Kredi)`;
+                generateBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align:-3px;margin-right:4px;"><path fill="currentColor" d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg> VİDEO ÜRET (${cost} Kredi)`;
             }
             generateBtn.dataset.cost = cost;
             generateBtn.dataset.aiType = aiType;
@@ -3339,7 +3340,6 @@
         const clipCounter = document.getElementById('player-counter');
 
         function editorAdd(url, type, label) {
-            emptyPlaylist.style.display = 'none';
             const item = { url, type, label };
             editorPlaylist.push(item);
             editorRenderPlaylist();
@@ -3349,10 +3349,18 @@
         function editorRenderPlaylist() {
             playlistContainer.innerHTML = '';
             if (editorPlaylist.length === 0) {
-                emptyPlaylist.style.display = 'block';
+                const emptyClone = document.createElement('div');
+                emptyClone.className = 'empty-state';
+                emptyClone.id = 'empty-playlist';
+                emptyClone.style.cssText = 'height:auto;padding:2rem 0;display:block;';
+                emptyClone.innerHTML = `
+                    <span class="empty-icon" style="font-size:1.5rem;"><svg viewBox="0 0 24 24" width="24" height="24" style="opacity:0.4"><path fill="currentColor" d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM6 20V4h5v7h7v9H6z"/></svg></span>
+                    <p style="font-size:0.65rem;">Galeriden veya üretimlerden görsellere tıklayıp "Editöre Gönder" seçeneğini kullanın.</p>
+                `;
+                playlistContainer.appendChild(emptyClone);
                 playerViewport.innerHTML = `
                     <div class="player-placeholder" id="player-placeholder">
-                        <span>📺</span>
+                        <svg viewBox="0 0 24 24" width="48" height="48" style="opacity:0.3"><path fill="currentColor" d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zm-5-6l-7 4V7l7 4z"/></svg>
                         <p>Oynatılacak Klip Yok</p>
                     </div>
                 `;
@@ -3370,7 +3378,7 @@
                 div.innerHTML = `
                     <div class="playlist-thumb">
                         ${item.type === 'video'
-                            ? `<video src="${item.url}" muted></video>`
+                            ? `<video src="${item.url}" muted preload="metadata"></video>`
                             : `<img src="${item.url}">`
                         }
                     </div>
