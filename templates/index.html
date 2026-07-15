@@ -1857,6 +1857,57 @@
                 gap: 0.4rem;
             }
         }
+
+        /* Prompt target dropdown and edit styles */
+        .prompt-use-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            z-index: 100;
+            min-width: 140px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            margin-top: 4px;
+        }
+        .prompt-use-dropdown.open {
+            display: block;
+        }
+        .prompt-use-option {
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            color: var(--muted);
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .prompt-use-option:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--accent);
+        }
+        .prompt-lib-edit-input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            width: 100%;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .prompt-lib-edit-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.05);
+        }
     </style>
 </head>
 <body>
@@ -1981,6 +2032,12 @@
                     </div>
                     <div class="multi-preview-grid" id="preview-grid-video-multi"></div>
                 </div>
+
+                <!-- Video Prompt Field -->
+                <div class="ctrl-field">
+                    <label for="video-prompt-input">Video Yapay Zeka Komutu (Prompt)</label>
+                    <textarea class="prompt-input" id="video-prompt-input" placeholder="Video sahnesini, hareketleri ve görsel stili buraya yazın... Örn: Slow cinematic panning, cyberpunk street..."></textarea>
+                </div>
             </div>
 
             <!-- Image Inputs -->
@@ -1993,6 +2050,12 @@
                         <div class="dz-text"><strong>Görsel sürükle</strong> veya tıklayarak seç</div>
                     </div>
                     <div class="multi-preview-grid" id="preview-grid-image-refs"></div>
+                </div>
+
+                <!-- Image Prompt Field -->
+                <div class="ctrl-field">
+                    <label for="image-prompt-input">Resim Yapay Zeka Komutu (Prompt)</label>
+                    <textarea class="prompt-input" id="image-prompt-input" placeholder="Görsel detaylarını ve stilini buraya yazın... Örn: Cinematic portrait, dramatic lighting, cyberpunk street..."></textarea>
                 </div>
             </div>
 
@@ -2036,12 +2099,6 @@
                     Ses Eklensin mi?
                 </span>
                 <div class="switch-input active" id="audio-toggle-switch"></div>
-            </div>
-
-            <!-- Prompt Textarea -->
-            <div class="ctrl-field">
-                <label for="prompt-input">Yapay Zeka Komutu (Prompt)</label>
-                <textarea class="prompt-input" id="prompt-input" placeholder="Sahneyi, hareketleri ve görsel stili buraya yazın... Örn: Slow cinematic panning, dramatic lighting, cyberpunk street..."></textarea>
             </div>
 
             <!-- Generate CTA -->
@@ -2134,13 +2191,12 @@
                             <input type="text" class="prompt-lib-input-field" id="prompt-lib-input" placeholder="Kütüphaneye kaydetmek istediğiniz komut metnini yazın...">
                             <button class="prompt-lib-add-btn" id="prompt-lib-add-btn">KAYDET</button>
                         </div>
-                        <div class="prompts-list" id="prompts-list">
-                            <div class="empty-state" id="empty-prompts" style="height: auto; padding: 3rem 0;">
-                                <svg class="studio-icon-large" style="opacity: 0.3; margin-bottom: 0.5rem;" viewBox="0 0 24 24"><path fill="currentColor" d="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M17,17H7V15H17V17M17,13H7V11H17V13M14,9H7V7H14V9Z" /></svg>
-                                <h3>Kayıtlı Prompt Yok</h3>
-                                <p>Sık kullandığınız komut metinlerini buraya ekleyerek hızlıca kullanabilirsiniz.</p>
-                            </div>
+                        <div class="empty-state" id="empty-prompts" style="height: auto; padding: 3rem 0;">
+                            <svg class="studio-icon-large" style="opacity: 0.3; margin-bottom: 0.5rem;" viewBox="0 0 24 24"><path fill="currentColor" d="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M17,17H7V15H17V17M17,13H7V11H17V13M14,9H7V7H14V9Z" /></svg>
+                            <h3>Kayıtlı Prompt Yok</h3>
+                            <p>Sık kullandığınız komut metinlerini buraya ekleyerek hızlıca kullanabilirsiniz.</p>
                         </div>
+                        <div class="prompts-list" id="prompts-list"></div>
                     </div>
                 </div>
 
@@ -2217,6 +2273,7 @@
         let editorPlaying = false;
         let editorTimer = null;
         let _savedPrompts = [];
+        let editingPromptId = null;
 
         // ------------------ UTILS ------------------
         function showToast(msg) {
@@ -2628,7 +2685,7 @@
             if (_imageModels.length > 0 && !selectedImageModel) {
                 selectImageModel(_imageModels[0]);
             } else if (selectedImageModel) {
-                updateModelSelectBtn(selectedImageModel);
+                selectImageModel(selectedImageModel);
             }
         }
 
@@ -2658,7 +2715,7 @@
             if (_videoModels.length > 0 && !selectedVideoModel) {
                 selectVideoModel(_videoModels[0]);
             } else if (selectedVideoModel) {
-                updateModelSelectBtn(selectedVideoModel);
+                selectVideoModel(selectedVideoModel);
             }
         }
 
@@ -2705,7 +2762,7 @@
             renderPills(resContainer, resolutions, (r) => r, (r) => {
                 selectedResolution = r;
                 calculateCost();
-            });
+            }, (r) => r, selectedResolution);
 
             // Update Ratio pills
             const ratioContainer = document.getElementById('pills-ratios');
@@ -2714,7 +2771,7 @@
             renderPills(ratioContainer, ratios, (r) => r, (r) => {
                 selectedRatio = r;
                 calculateCost();
-            });
+            }, (r) => r, selectedRatio);
 
             // Hide Video only configs
             document.getElementById('field-durations').style.display = 'none';
@@ -2736,7 +2793,7 @@
             renderPills(resContainer, resolutions, (r) => r + "p", (r) => {
                 selectedResolution = r;
                 calculateCost();
-            });
+            }, (r) => r, selectedResolution);
 
             // Update duration pills (some duration items have custom icons)
             const durContainer = document.getElementById('pills-durations');
@@ -2748,7 +2805,7 @@
             }, (val) => {
                 selectedDuration = val;
                 calculateCost();
-            }, (d) => d.value);
+            }, (d) => d.value, selectedDuration);
 
             // Audio capability
             const audioSwitchRow = document.getElementById('field-audio');
@@ -2780,14 +2837,21 @@
             calculateCost();
         }
 
-        function renderPills(container, items, labelFormatter, onSelect, valueExtractor = (i) => i) {
+        function renderPills(container, items, labelFormatter, onSelect, valueExtractor = (i) => i, defaultValue = null) {
             container.innerHTML = '';
+            let matchedIndex = -1;
+            if (defaultValue !== null) {
+                matchedIndex = items.findIndex(item => String(valueExtractor(item)) === String(defaultValue));
+            }
+            const activeIndex = matchedIndex >= 0 ? matchedIndex : 0;
+
             items.forEach((item, idx) => {
                 const val = valueExtractor(item);
                 const pill = document.createElement('div');
-                pill.className = `pill ${idx === 0 ? 'active' : ''}`;
+                const isActive = idx === activeIndex;
+                pill.className = `pill ${isActive ? 'active' : ''}`;
                 pill.innerHTML = labelFormatter(item);
-                if (idx === 0) onSelect(val);
+                if (isActive) onSelect(val);
                 pill.addEventListener('click', () => {
                     container.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
                     pill.classList.add('active');
@@ -2874,7 +2938,8 @@
         // ------------------ TASK SUBMISSION & POLLING ------------------
 
         generateBtn.addEventListener('click', () => {
-            const prompt = document.getElementById('prompt-input').value.trim();
+            const promptInputId = activeMode === 'image' ? 'image-prompt-input' : 'video-prompt-input';
+            const prompt = document.getElementById(promptInputId).value.trim();
             if (!prompt) {
                 showToast("Komut girmelisiniz!");
                 return;
@@ -2955,7 +3020,7 @@
             card.innerHTML = `
                 <div class="job-thumb" id="thumb-wrap-${id}">
                     <span class="job-status-badge badge-running" id="badge-${id}">Running</span>
-                    <button class="job-card-delete" onclick="deleteTaskCard('${id}')" style="display:none">✕</button>
+                    <button class="job-card-delete" onclick="deleteTaskCard('${id}')">✕</button>
                     <div class="job-progress-bar">
                         <div class="job-progress-fill running" id="prog-${id}"></div>
                     </div>
@@ -3005,7 +3070,7 @@
                         // Check status
                         if (d.status === 'Tamamlandı') {
                             clearInterval(interval);
-                            finishTaskCard(id, d.result_url, d.result_type, d.prompt, d.model);
+                            finishTaskCard(id, d.result_url, d.result_type, d.prompt, d.model, true);
                         } else if (d.status === 'Hata') {
                             clearInterval(interval);
                             const badge = document.getElementById(`badge-${id}`);
@@ -3024,7 +3089,7 @@
             activeTasks[id] = interval;
         }
 
-        function finishTaskCard(id, url, type, prompt, model) {
+        function finishTaskCard(id, url, type, prompt, model, saveToGallery = true) {
             const badge = document.getElementById(`badge-${id}`);
             if (badge) {
                 badge.className = 'job-status-badge badge-done';
@@ -3077,33 +3142,38 @@
             }
 
             // Auto save to Flask server gallery
-            const item = {
-                id: id,
-                prompt: prompt,
-                model: model,
-                resultType: type,
-                url: url,
-                timestamp: Math.floor(Date.now() / 1000)
-            };
+            if (saveToGallery) {
+                const item = {
+                    id: id,
+                    prompt: prompt,
+                    model: model,
+                    resultType: type,
+                    url: url,
+                    timestamp: Math.floor(Date.now() / 1000)
+                };
 
-            fetch('/gallery_add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(item)
-            }).then(() => {
-                loadGallery();
-            });
+                fetch('/gallery_add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item)
+                }).then(() => {
+                    loadGallery();
+                });
+            }
         }
 
         function deleteTaskCard(id) {
-            const card = document.getElementById(`task-card-${id}`);
-            if (card) card.remove();
-            if (activeTasks[id]) {
-                clearInterval(activeTasks[id]);
-                delete activeTasks[id];
-            }
-            updateTabsCounts();
-            checkEmptyStates();
+            fetch(`/delete_task/${id}`, { method: 'DELETE' })
+                .then(() => {
+                    const card = document.getElementById(`task-card-${id}`);
+                    if (card) card.remove();
+                    if (activeTasks[id]) {
+                        clearInterval(activeTasks[id]);
+                        delete activeTasks[id];
+                    }
+                    updateTabsCounts();
+                    checkEmptyStates();
+                });
         }
 
         // Restore tasks on page load
@@ -3133,7 +3203,7 @@
                             }
 
                             if (t.status === 'Tamamlandı') {
-                                finishTaskCard(t.id, t.result_url, t.result_type, t.prompt, t.model);
+                                finishTaskCard(t.id, t.result_url, t.result_type, t.prompt, t.model, false);
                             } else if (t.status === 'Hata') {
                                 const badge = document.getElementById(`badge-${t.id}`);
                                 if (badge) {
@@ -3432,25 +3502,113 @@
                 _savedPrompts.forEach(p => {
                     const card = document.createElement('div');
                     card.className = 'prompt-lib-card';
-                    card.innerHTML = `
-                        <div class="prompt-lib-txt">${p.text}</div>
-                        <div class="prompt-lib-actions">
-                            <button class="prompt-lib-action-btn use-btn">Kullan</button>
-                            <button class="prompt-lib-action-btn del-btn">Sil</button>
-                        </div>
-                    `;
-                    card.querySelector('.use-btn').addEventListener('click', () => {
-                        document.getElementById('prompt-input').value = p.text;
-                        showToast("Prompt ana komut satırına uygulandı!");
-                    });
-                    card.querySelector('.del-btn').addEventListener('click', () => {
-                        deletePrompt(p.id);
-                    });
+                    
+                    if (editingPromptId === p.id) {
+                        card.innerHTML = `
+                            <input type="text" class="prompt-lib-edit-input" id="edit-input-${p.id}" value="${p.text}">
+                            <div class="prompt-lib-actions">
+                                <button class="prompt-lib-action-btn save-btn" style="color: var(--accent); border-color: rgba(0, 212, 255, 0.2);">Kaydet</button>
+                                <button class="prompt-lib-action-btn cancel-btn">Vazgeç</button>
+                            </div>
+                        `;
+                        
+                        card.querySelector('.save-btn').addEventListener('click', () => {
+                            const newText = document.getElementById(`edit-input-${p.id}`).value.trim();
+                            if (!newText) {
+                                showToast("Prompt metni boş olamaz!");
+                                return;
+                            }
+                            fetch(`/edit_prompt/${p.id}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ text: newText })
+                            })
+                            .then(r => r.json())
+                            .then(d => {
+                                if (d.error) {
+                                    showToast(d.error);
+                                } else {
+                                    p.text = newText;
+                                    editingPromptId = null;
+                                    renderPrompts();
+                                    showToast("Prompt başarıyla güncellendi.");
+                                }
+                            });
+                        });
+                        
+                        card.querySelector('.cancel-btn').addEventListener('click', () => {
+                            editingPromptId = null;
+                            renderPrompts();
+                        });
+                        
+                        // Save on Enter
+                        card.querySelector('.prompt-lib-edit-input').addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                card.querySelector('.save-btn').click();
+                            }
+                        });
+                    } else {
+                        card.innerHTML = `
+                            <div class="prompt-lib-txt">${p.text}</div>
+                            <div class="prompt-lib-actions" style="position: relative;">
+                                <button class="prompt-lib-action-btn use-btn">Kullan</button>
+                                <div class="prompt-use-dropdown" id="dropdown-${p.id}">
+                                    <button class="prompt-use-option send-img-opt">Resme Gönder</button>
+                                    <button class="prompt-use-option send-vid-opt">Videoya Gönder</button>
+                                </div>
+                                <button class="prompt-lib-action-btn edit-btn">Düzenle</button>
+                                <button class="prompt-lib-action-btn del-btn">Sil</button>
+                            </div>
+                        `;
+                        
+                        const useBtn = card.querySelector('.use-btn');
+                        const dropdown = card.querySelector('.prompt-use-dropdown');
+                        
+                        useBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            // Close other open dropdowns
+                            document.querySelectorAll('.prompt-use-dropdown').forEach(d => {
+                                if (d !== dropdown) d.classList.remove('open');
+                            });
+                            dropdown.classList.toggle('open');
+                        });
+                        
+                        card.querySelector('.send-img-opt').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            document.getElementById('image-prompt-input').value = p.text;
+                            dropdown.classList.remove('open');
+                            showToast("Prompt Resim alanına uygulandı!");
+                        });
+                        
+                        card.querySelector('.send-vid-opt').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            document.getElementById('video-prompt-input').value = p.text;
+                            dropdown.classList.remove('open');
+                            showToast("Prompt Video alanına uygulandı!");
+                        });
+                        
+                        card.querySelector('.edit-btn').addEventListener('click', () => {
+                            editingPromptId = p.id;
+                            renderPrompts();
+                        });
+                        
+                        card.querySelector('.del-btn').addEventListener('click', () => {
+                            deletePrompt(p.id);
+                        });
+                    }
+                    
                     list.appendChild(card);
                 });
             }
             updateTabsCounts();
         }
+
+        // Close prompt dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('use-btn')) {
+                document.querySelectorAll('.prompt-use-dropdown').forEach(d => d.classList.remove('open'));
+            }
+        });
 
         function deletePrompt(id) {
             fetch(`/delete_prompt/${id}`, { method: 'DELETE' })
@@ -3795,10 +3953,14 @@
             } else if (tabName === 'generations') {
                 clearTabBtn.style.display = 'block';
                 clearTabBtn.onclick = () => {
-                    document.getElementById('grid-generations').innerHTML = '';
-                    activeTasks = {};
-                    checkEmptyStates();
-                    updateTabsCounts();
+                    if (confirm("Tüm üretim geçmişini silmek istediğinize emin misiniz?")) {
+                        fetch('/clear_tasks', { method: 'DELETE' }).then(() => {
+                            document.getElementById('grid-generations').innerHTML = '';
+                            activeTasks = {};
+                            checkEmptyStates();
+                            updateTabsCounts();
+                        });
+                    }
                 };
             } else {
                 clearTabBtn.style.display = 'none';
