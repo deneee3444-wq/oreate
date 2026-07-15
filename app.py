@@ -413,6 +413,64 @@ class OreateBot:
         up_r.raise_for_status()
         return object_path, filename, ext, size
 
+    def upload_file_in_memory(self, filename: str, content: bytes) -> tuple[str, str, str, int]:
+        _, dot_ext = os.path.splitext(filename)
+        ext = dot_ext.lstrip(".")
+        size = len(content)
+        upload_key = f"upload-{int(time.time() * 1000)}-0"
+        payload = {
+            "mFileList": [{"filename": upload_key, "fileExt": ext, "size": size}],
+            "source": "aiImage",
+        }
+        r = self.session.post(
+            f"{self.BASE}/oreate/convert/getuploadbostoken",
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=self.http_timeout,
+        )
+        r.raise_for_status()
+        resp = r.json()
+        status_code = resp.get("status", {}).get("code", -1)
+        if status_code != 0 or "data" not in resp:
+            err = resp.get("status", {}).get("errMsg", "Bilinmeyen API hatası (Giriş yapılmamış olabilir)")
+            raise RuntimeError(f"Oreate API upload token hatası: {err} (code={status_code})")
+        key_name = f"{upload_key}.{ext}"
+        key_data = resp["data"]["KeyList"][key_name]
+        bucket = key_data["bucket"]
+        object_path = key_data["objectPath"]
+        session_key = key_data["sessionkey"]
+        encoded_name = urllib.parse.quote(object_path, safe="")
+        init_url = (
+            f"https://storage.googleapis.com/upload/storage/v1/b/{bucket}/o"
+            f"?uploadType=resumable&name={encoded_name}"
+        )
+        content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+        init_headers = {
+            "Authorization": f"Bearer {session_key}",
+            "Content-Type": "application/json; charset=UTF-8",
+            "X-Upload-Content-Type": content_type,
+            "X-Upload-Content-Length": str(size),
+            "Origin": "https://www.oreateai.com",
+        }
+        init_r = requests.post(
+            init_url,
+            headers=init_headers,
+            json={"name": object_path, "contentType": content_type},
+            timeout=30,
+        )
+        init_r.raise_for_status()
+        upload_url = init_r.headers.get("Location") or init_r.headers.get("location")
+        if not upload_url:
+            raise RuntimeError("GCS upload URL alınamadı")
+        up_headers = {
+            "Content-Type": content_type,
+            "Content-Length": str(size),
+            "Origin": "https://www.oreateai.com",
+        }
+        up_r = requests.put(upload_url, data=content, headers=up_headers, timeout=120)
+        up_r.raise_for_status()
+        return object_path, filename, ext, size
+
     def create_chat(self, chat_type: str) -> str:
         r = self.session.post(
             f"{self.BASE}/oreate/create/chat",
@@ -653,8 +711,6 @@ def find_video_point_cost(models: list, model_name: str, resolution: str,
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'oreto-studio-glass-secret-2026')
 PANEL_PASSWORD = os.environ.get('PANEL_PASSWORD', '123')
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Global memory states
 bot = None
@@ -823,7 +879,7 @@ def api_models():
         return jsonify({"error": str(e)}), 500
 
 # ----------------- GENERATION TASK PIPELINE -----------------
-def background_generate(task_id, mode, prompt, model, resolution, ratio, duration, audio, ai_type, scene, file_paths):
+def background_generate(task_id, mode, prompt, model, resolution, ratio, duration, audio, ai_type, scene, in_memory_files):
     events = []
     try:
         def update_log(msg):
@@ -837,11 +893,11 @@ def background_generate(task_id, mode, prompt, model, resolution, ratio, duratio
             raise RuntimeError("Oreate oturumu bulunamadı. Lütfen sağ üstteki 'Yönetim' menüsünden 'Otomatik Yeni Hesap Aç' veya 'Giriş Yap' seçeneğini kullanarak giriş yapın.")
 
         attachments = []
-        for i, fp in enumerate(file_paths):
-            if not os.path.exists(fp):
-                continue
-            update_log(f"Dosya Oreate sunucularına yükleniyor ({i+1}/{len(file_paths)})...")
-            bos_url, ftitle, fext, fsize = b.upload_file(fp)
+        for i, file_obj in enumerate(in_memory_files):
+            filename = file_obj["filename"]
+            content = file_obj["content"]
+            update_log(f"Dosya Oreate sunucularına yükleniyor ({i+1}/{len(in_memory_files)})...")
+            bos_url, ftitle, fext, fsize = b.upload_file_in_memory(filename, content)
             attachments.append({
                 "bos_url": bos_url, "doc_title": ftitle,
                 "doc_type": fext, "size": fsize,
@@ -930,12 +986,7 @@ def background_generate(task_id, mode, prompt, model, resolution, ratio, duratio
                 tasks[task_id]['status'] = 'Hata'
                 tasks[task_id]['logs'].append(f"İşlem hatası: {str(e)}")
     finally:
-        for fp in file_paths:
-            try:
-                if os.path.exists(fp):
-                    os.remove(fp)
-            except Exception:
-                pass
+        pass
 
 @app.route('/start_task', methods=['POST'])
 def start_task():
@@ -950,7 +1001,7 @@ def start_task():
     if not model:
         return jsonify({"error": "Model seçilmelidir"}), 400
     task_id = str(uuid.uuid4())[:8]
-    local_saved_paths = []
+    in_memory_files = []
 
     uploaded_files = request.files.getlist('images') or request.files.getlist('image') or []
     end_image = request.files.get('end_image')
@@ -958,10 +1009,11 @@ def start_task():
         uploaded_files.append(end_image)
     for f in uploaded_files:
         if f and f.filename:
-            safe_name = f"{uuid.uuid4().hex}_{f.filename}"
-            save_path = os.path.join(UPLOAD_FOLDER, safe_name)
-            f.save(save_path)
-            local_saved_paths.append(save_path)
+            file_bytes = f.read()
+            in_memory_files.append({
+                "filename": f.filename,
+                "content": file_bytes
+            })
 
     resolution = request.form.get('resolution', '720')
     ratio = request.form.get('ratio', '1:1')
@@ -987,7 +1039,7 @@ def start_task():
 
     threading.Thread(
         target=background_generate,
-        args=(task_id, mode, prompt, model, resolution, ratio, duration, audio, ai_type, scene, local_saved_paths),
+        args=(task_id, mode, prompt, model, resolution, ratio, duration, audio, ai_type, scene, in_memory_files),
         daemon=True
     ).start()
 
@@ -1106,6 +1158,37 @@ def proxy_video():
         return Response(r.content, mimetype="video/mp4", headers=headers)
     except Exception as e:
         return str(e), 500
+
+@app.route('/delete_task/<task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    with tasks_lock:
+        tasks.pop(task_id, None)
+    return jsonify({"ok": True})
+
+@app.route('/clear_tasks', methods=['DELETE'])
+def clear_tasks():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    with tasks_lock:
+        tasks.clear()
+    return jsonify({"ok": True})
+
+@app.route('/edit_prompt/<id>', methods=['POST'])
+def edit_prompt(id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    data = request.json or {}
+    text = data.get('text', '').strip()
+    if not text:
+        return jsonify({"error": "Prompt metni boş olamaz"}), 400
+    with prompts_lock:
+        if id in saved_prompts:
+            saved_prompts[id]['text'] = text
+            return jsonify(saved_prompts[id])
+        else:
+            return jsonify({"error": "Prompt bulunamadı"}), 404
 
 # ----------------- RUN SERVER -----------------
 if __name__ == '__main__':
