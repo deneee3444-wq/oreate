@@ -32,7 +32,7 @@ class OreateBot:
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/150.0.0.0 Safari/537.36"
+            "Chrome/155.0.0.0 Safari/537.36"
         ),
         "Accept": "application/json, text/plain, */*",
         "Accept-Language": "en-US,en;q=0.9",
@@ -126,7 +126,7 @@ class OreateBot:
             "email": email,
             "ticketID": ticket_id,
             "password": enc_pw,
-            "jt": ""
+            "jt": _fake_jt()
         }
         r = self.session.post(
             f"{self.BASE}/passport/api/emailsignupin",
