@@ -1,5 +1,6 @@
 Flask
 requests
+curl_cffi
 pycryptodome
 urllib3
 gunicorn
