@@ -11,7 +11,12 @@ import urllib.parse
 import uuid
 import threading
 import urllib3
-import requests
+try:
+    from curl_cffi import requests
+    HAS_CURL_CFFI = True
+except ImportError:
+    import requests
+    HAS_CURL_CFFI = False
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from flask import Flask, render_template, request, redirect, session, jsonify, Response, send_file, url_for
@@ -32,7 +37,7 @@ class OreateBot:
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/155.0.0.0 Safari/537.36"
+            "Chrome/150.0.0.0 Safari/537.36"
         ),
         "Accept": "application/json, text/plain, */*",
         "Accept-Language": "en-US,en;q=0.9",
@@ -46,12 +51,15 @@ class OreateBot:
         self.email_length = email_length
         self.http_timeout = http_timeout
         self.debug = debug
-        self.session = requests.Session()
-        from requests.adapters import HTTPAdapter
-        adapter = HTTPAdapter(pool_connections=50, pool_maxsize=50)
-        self.session.mount("http://", adapter)
-        self.session.mount("https://", adapter)
-        self.session.verify = False
+        if HAS_CURL_CFFI:
+            self.session = requests.Session(impersonate="chrome120")
+        else:
+            self.session = requests.Session()
+            from requests.adapters import HTTPAdapter
+            adapter = HTTPAdapter(pool_connections=50, pool_maxsize=50)
+            self.session.mount("http://", adapter)
+            self.session.mount("https://", adapter)
+            self.session.verify = False
         self.session.headers.update(self.COMMON_HEADERS)
         self.email = ""
         self._init_session()
@@ -62,9 +70,18 @@ class OreateBot:
             print("[dbg]", *a)
 
     def _get_cookie_safe(self, name: str) -> str:
-        for cookie in self.session.cookies:
-            if cookie.name == name:
-                return cookie.value
+        try:
+            val = self.session.cookies.get(name)
+            if val is not None:
+                return str(val)
+        except Exception:
+            pass
+        try:
+            for cookie in self.session.cookies:
+                if hasattr(cookie, "name") and cookie.name == name:
+                    return cookie.value
+        except Exception:
+            pass
         return ""
 
     def _init_session(self):
@@ -77,14 +94,18 @@ class OreateBot:
                 self.session.cookies.clear(domain=domain, name="__bid_n")
             except:
                 pass
-            self.session.cookies.set("__bid_n", bid_val, domain=domain, path="/")
+            try:
+                self.session.cookies.set("__bid_n", bid_val, domain=domain, path="/")
+            except Exception:
+                pass
         try:
             r = self.session.get(
                 f"{self.BASE}/home/index",
                 timeout=self.http_timeout,
                 allow_redirects=True,
             )
-            self._log(f"Init session: status={r.status_code}, cookies={list(self.session.cookies.keys())}")
+            cookies_keys = list(self.session.cookies.keys()) if hasattr(self.session.cookies, 'keys') else [c.name for c in self.session.cookies]
+            self._log(f"Init session: status={r.status_code}, cookies={cookies_keys}")
         except Exception as e:
             self._log(f"Init session hatası (önemsiz): {e}")
 
@@ -104,7 +125,12 @@ class OreateBot:
         r = self.session.get(f"{self.BASE}/passport/api/getticket",
                              timeout=self.http_timeout)
         r.raise_for_status()
-        d = r.json()["data"]
+        res_json = r.json()
+        if res_json.get("status", {}).get("code") != 0 or "data" not in res_json:
+            msg = res_json.get("status", {}).get("msg") or "Bilinmeyen hata"
+            code = res_json.get("status", {}).get("code")
+            raise RuntimeError(f"Ticket alınamadı (code={code}): {msg}")
+        d = res_json["data"]
         return d["ticketID"], d["pk"]
 
     @staticmethod
@@ -126,7 +152,7 @@ class OreateBot:
             "email": email,
             "ticketID": ticket_id,
             "password": enc_pw,
-            "jt": self._fake_jt()
+            "jt": ""
         }
         r = self.session.post(
             f"{self.BASE}/passport/api/emailsignupin",
@@ -411,7 +437,43 @@ class OreateBot:
         }
         up_r = requests.put(upload_url, data=file_data, headers=up_headers, timeout=120)
         up_r.raise_for_status()
-        return object_path, filename, ext, size
+
+        print(f"[+] Dosya yüklendi, medya kontrolü yapılıyor...")
+        try:
+            chk_r = self.session.post(
+                f"{self.BASE}/oreate/risk/mediacheck",
+                json={
+                    "object": object_path,
+                    "scene": "oreate_aivideo",
+                },
+                headers={
+                    "Content-Type": "application/json",
+                    "Origin": "https://www.oreateai.com",
+                    "Referer": f"{self.BASE}/home/vertical/aiVideo",
+                },
+                timeout=60,
+            )
+            chk_r.raise_for_status()
+            chk_data = chk_r.json()
+            res_data = chk_data.get("data") or {}
+            verdict = res_data.get("verdict")
+            if verdict == "reject":
+                reason = res_data.get("reason", "hit")
+                raise ValueError(f"Yüklenen medya sunucu filtre kontrolüne takıldı (verdict=reject, reason={reason}).")
+            promoted_path = res_data.get("object")
+            if promoted_path:
+                clean_path = promoted_path
+            else:
+                clean_path = object_path.replace("riskpending/", "")
+            self._log(f"mediacheck sonucu: {res_data}")
+        except ValueError:
+            raise
+        except Exception as e:
+            self._log(f"mediacheck hatası (tolerans): {e}")
+            clean_path = object_path.replace("riskpending/", "")
+
+        print(f"[+] Medya doğrulandı ve CDN yolu hazırlandı!")
+        return clean_path, filename, ext, size
 
     def upload_file_in_memory(self, filename: str, content: bytes) -> tuple[str, str, str, int]:
         _, dot_ext = os.path.splitext(filename)
@@ -469,7 +531,43 @@ class OreateBot:
         }
         up_r = requests.put(upload_url, data=content, headers=up_headers, timeout=120)
         up_r.raise_for_status()
-        return object_path, filename, ext, size
+
+        print(f"[+] Dosya yüklendi (in-memory), medya kontrolü yapılıyor...")
+        try:
+            chk_r = self.session.post(
+                f"{self.BASE}/oreate/risk/mediacheck",
+                json={
+                    "object": object_path,
+                    "scene": "oreate_aivideo",
+                },
+                headers={
+                    "Content-Type": "application/json",
+                    "Origin": "https://www.oreateai.com",
+                    "Referer": f"{self.BASE}/home/vertical/aiVideo",
+                },
+                timeout=60,
+            )
+            chk_r.raise_for_status()
+            chk_data = chk_r.json()
+            res_data = chk_data.get("data") or {}
+            verdict = res_data.get("verdict")
+            if verdict == "reject":
+                reason = res_data.get("reason", "hit")
+                raise ValueError(f"Yüklenen medya sunucu filtre kontrolüne takıldı (verdict=reject, reason={reason}).")
+            promoted_path = res_data.get("object")
+            if promoted_path:
+                clean_path = promoted_path
+            else:
+                clean_path = object_path.replace("riskpending/", "")
+            self._log(f"mediacheck sonucu: {res_data}")
+        except ValueError:
+            raise
+        except Exception as e:
+            self._log(f"mediacheck hatası (tolerans): {e}")
+            clean_path = object_path.replace("riskpending/", "")
+
+        print(f"[+] Medya doğrulandı ve CDN yolu hazırlandı!")
+        return clean_path, filename, ext, size
 
     def create_chat(self, chat_type: str) -> str:
         r = self.session.post(
@@ -493,7 +591,13 @@ class OreateBot:
     def _parse_sse(self, response) -> list[dict]:
         events = []
         chunk_index = 0
-        for line in response.iter_lines(decode_unicode=True):
+        for raw_line in response.iter_lines():
+            if raw_line is None:
+                continue
+            if isinstance(raw_line, bytes):
+                line = raw_line.decode("utf-8", errors="ignore").rstrip("\r\n")
+            else:
+                line = raw_line.rstrip("\r\n")
             if not line or not line.startswith("data: "):
                 continue
             try:
